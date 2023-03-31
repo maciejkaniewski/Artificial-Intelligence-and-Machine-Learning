@@ -3,10 +3,7 @@ public class EvaluatePosition // This class is required - don't remove it
 {
     static private final int WIN=Integer.MAX_VALUE/2;
     static private final int LOSE=Integer.MIN_VALUE/2;
-
-
-
-
+    
     static private boolean _color; // This field is required - don't remove it
 
     // pawnOrKing
