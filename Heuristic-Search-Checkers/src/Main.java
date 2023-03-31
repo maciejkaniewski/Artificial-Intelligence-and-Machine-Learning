@@ -3,23 +3,43 @@ public class EvaluatePosition // This class is required - don't remove it
 {
     static private final int WIN=Integer.MAX_VALUE/2;
     static private final int LOSE=Integer.MIN_VALUE/2;
+
+
+
+
     static private boolean _color; // This field is required - don't remove it
 
-    // Define point values for pieces
-    private static final int PAWN_VALUE = 1;
-    private static final int KING_VALUE = 5;
+    // pawnOrKing
+    private static final int PAWN_VALUE = 15;
+    private static final int KING_VALUE = 50; // must be greater thean promotion distance
 
-    private static final int SAFE_PAWN_VALUE = 2;
-    private static final int SAFE_KING_VALUE = 3;
+    // safePawnOrKing
+    private static final int SAFE_PAWN_VALUE = 10;
+    private static final int SAFE_KING_VALUE = 45;
 
-    private static final int MOVABLE_PAWN_VALUE = 3;
-    private static final int MOVABLE_KING_VALUE = 4;
+    // movablePawnOrKingWithoutCapturing
+    private static final int MOVABLE_PAWN_VALUE = 5;
+    private static final int MOVABLE_KING_VALUE = 35;
 
-    private static final int CENTER_VALUE = 5;
+    // pieceInCenter
+    private static final int PAWN_CENTER_VALUE = 15;
+    private static final int KING_CENTER_VALUE = 45;
 
-    private static final int OCCUPIED_FIELD_ON_PROMOTION_LINE = 2;
+    // distanceToPromotion
+    private static final int DISTANCE_PROMOTION_MULTIPLIER = 5; // Max value 30, min value 5
 
-    private static final int DEFENDER_PIECE = 3;
+    // occupiedFieldOnPromotionLine
+    private static final int OCCUPIED_FIELD_ON_PROMOTION_LINE = 20;
+
+    // defenderPiece
+    private static final int DEFENDER_PIECE = 15;
+
+    // attackingPawn
+    private  static final int ATTACKING_PAWN = 8;
+
+    // pieceOnDiagonal
+    private static final int PAWN_DIAGONAL_VALUE = 12;
+    private static final int KING_DIAGONAL_VALUE = 40;
 
     static private int pawnOrKing(AIBoard board, int row, int column)
     {
@@ -28,9 +48,9 @@ public class EvaluatePosition // This class is required - don't remove it
 
     static private int safePawnOrKing(AIBoard board, int row, int column)
     {
-        int size=board.getSize();
+        int size = board.getSize();
 
-        if(row == 0 || row == size - 1 || column == size -1 || column == 7)
+        if(row == 0 || row == size - 1 || column == 0 || column == size -1 )
         {
             return (board._board[row][column].king) ? SAFE_KING_VALUE : SAFE_PAWN_VALUE;
         }
@@ -39,7 +59,7 @@ public class EvaluatePosition // This class is required - don't remove it
 
     static private int movablePawnOrKingWithoutCapturing(AIBoard board, int row, int column)
     {
-        int direction = (board._board[row][column].white==getColor()) ? 1 : -1;
+        int direction = getColor() ? 1 : -1;
 
         if(board._board[row+direction][column-1].empty && board._board[row+direction][column+1].empty)
         {
@@ -48,49 +68,99 @@ public class EvaluatePosition // This class is required - don't remove it
         return 0;
     }
 
-    static private int pieceInCenter(int row, int columns)
+    static private int pieceInCenter(AIBoard board, int row, int column)
     {
-        return ((row == 3 || row == 4) && (columns == 3 || columns == 4)) ? CENTER_VALUE : 0;
+        boolean center = ((row == 3 || row == 4) && (column >= 2 && column <= 5));
+        return center ? (board._board[row][column].king ? KING_CENTER_VALUE : PAWN_CENTER_VALUE) : 0;
     }
 
     static private int distanceToPromotion(AIBoard board, int row, int column)
     {
-        int size=board.getSize();
-
-        if(board._board[row][column].white==getColor())
+        if(getColor())
         {
-            return (board._board[row][column].king) ? 0 : row/2;
+            return (board._board[row][column].king) ? 0 : row*DISTANCE_PROMOTION_MULTIPLIER;
         }
         else
         {
-            return (board._board[row][column].king) ? 0 : (size - 1 - row)/2;
+            return (board._board[row][column].king) ? 0 : (board.getSize() - 1 - row)*DISTANCE_PROMOTION_MULTIPLIER;
         }
     }
 
     static private int occupiedFieldOnPromotionLine(AIBoard board, int row, int column)
     {
-        if(board._board[row][column].white==getColor())
-        {
-            if(row == 0) return OCCUPIED_FIELD_ON_PROMOTION_LINE;
-        }
-        else
-        {
-            if(row == 7) return OCCUPIED_FIELD_ON_PROMOTION_LINE;
-        }
-        return 0;
+        boolean isWhite = getColor();
+        boolean onPromotionLine = isWhite ? row == 0 : row == 7;
+        return onPromotionLine ? OCCUPIED_FIELD_ON_PROMOTION_LINE : 0;
     }
 
     static private int defenderPiece(AIBoard board, int row, int column)
     {
-        if(board._board[row][column].white==getColor())
+        boolean isWhite = getColor();
+        boolean isDefender = (isWhite && (row == 0 || row == 1)) || (!isWhite && (row == 6 || row == 7));
+        return isDefender ? DEFENDER_PIECE : 0;
+    }
+
+    static private int attackingPawn(AIBoard board, int row, int column)
+    {
+        boolean isWhite = getColor();
+
+        if (isWhite && row >= 4 && !board._board[row][column].king)
         {
-            if(row == 0 || row == 1) return DEFENDER_PIECE;
+            return ATTACKING_PAWN;
+        }
+        else if (!isWhite && row <= 3 && !board._board[row][column].king)
+        {
+            return ATTACKING_PAWN;
         }
         else
         {
-            if(row == 6 || row == 7) return DEFENDER_PIECE;
+            return 0;
         }
-        return 0;
+    }
+
+    static private int pieceOnMainDiagonal(AIBoard board, int row, int column)
+    {
+        boolean diagonal = (row+column == board.getSize()-1);
+        return diagonal ? (board._board[row][column].king ? KING_DIAGONAL_VALUE : PAWN_DIAGONAL_VALUE) : 0;
+    }
+
+
+    static private boolean canCaptureInDirection(AIBoard board, int row, int column, int rowDir, int colDir, boolean color)
+    {
+        int targetRow = row + 2 * rowDir;
+        int targetColumn = column + 2 * colDir;
+
+        // target position is out of bounds
+        if (targetRow < 0 || targetRow >= board.getSize() || targetColumn < 0 || targetColumn >= board.getSize())
+        {
+            return false;
+        }
+
+        boolean isCaptureFieldEmpty = board._board[row + rowDir][column + colDir].empty;
+        boolean isJumpFieldOccupied = !(board._board[targetRow][targetColumn].empty);
+        boolean isPieceToCaptureWhite = board._board[row + rowDir][column + colDir].white;
+
+        // there's no opponent piece to capture or the jump destination is occupied
+        return !isCaptureFieldEmpty && isPieceToCaptureWhite != color && !isJumpFieldOccupied;
+    }
+
+    static private boolean canPerformCapture(AIBoard board, int row, int column)
+    {
+        boolean isWhite = getColor();
+        boolean color = board._board[row][column].white;
+
+        if (board._board[row][column].king) // kings can capture in any direction
+        {
+            return canCaptureInDirection(board, row, column, -1, -1, color) ||
+                    canCaptureInDirection(board, row, column, -1, 1, color) ||
+                    canCaptureInDirection(board, row, column, 1, -1, color) ||
+                    canCaptureInDirection(board, row, column, 1, 1, color);
+        }
+       else  // regular pieces can only capture forward
+        {
+            return canCaptureInDirection(board, row, column, isWhite ? 1 : -1, -1, color) ||
+                    canCaptureInDirection(board, row, column, isWhite ? 1 : -1, 1, color);
+        }
     }
 
     static public void changeColor(boolean color) // This method is required - don't remove it
@@ -116,22 +186,34 @@ public class EvaluatePosition // This class is required - don't remove it
                     if (board._board[i][j].white==getColor()) // this is my piece
                     {
                         myRating += pawnOrKing(board,i,j);
-                        myRating += safePawnOrKing(board,i,j);
-                        myRating += movablePawnOrKingWithoutCapturing(board,i,j);
-                        myRating += pieceInCenter(i,j);
-                        myRating += distanceToPromotion(board,i,j);
-                        myRating += occupiedFieldOnPromotionLine(board,i,j);
-                        myRating += defenderPiece(board,i,j);
+                        myRating += safePawnOrKing(board,i,j); // OK
+                        myRating += movablePawnOrKingWithoutCapturing(board,i,j); // MEH
+                        myRating += pieceInCenter(board,i,j); // OK
+                        myRating += distanceToPromotion(board,i,j); //OK
+                        myRating += occupiedFieldOnPromotionLine(board,i,j); // OK
+                        myRating += defenderPiece(board,i,j); //OK
+                        myRating += attackingPawn(board,i,j); //OK
+                        myRating += pieceOnMainDiagonal(board,i,j); //OK
+                        if(canPerformCapture(board,i,j))
+                        {
+                            myRating += 30;
+                        }
                     }
                     else
                     {
                         opponentsRating += pawnOrKing(board, i ,j);
-                        opponentsRating += safePawnOrKing(board,i,j);
-                        opponentsRating += movablePawnOrKingWithoutCapturing(board,i,j);
-                        opponentsRating += pieceInCenter(i,j);
-                        opponentsRating += distanceToPromotion(board,i,j);
-                        opponentsRating += occupiedFieldOnPromotionLine(board,i,j);
-                        opponentsRating += defenderPiece(board,i,j);
+                        opponentsRating += safePawnOrKing(board,i,j); //OK
+                        opponentsRating += movablePawnOrKingWithoutCapturing(board,i,j); //MEH
+                        opponentsRating += pieceInCenter(board,i,j); //OK
+                        opponentsRating += distanceToPromotion(board,i,j); //OK
+                        opponentsRating += occupiedFieldOnPromotionLine(board,i,j); //OK
+                        opponentsRating += defenderPiece(board,i,j); //OK
+                        opponentsRating += attackingPawn(board,i,j); //OK
+                        opponentsRating += pieceOnMainDiagonal(board,i,j); //OK
+                        if(canPerformCapture(board,i,j))
+                        {
+                            opponentsRating += 30;
+                        }
                     }
                 }
             }
