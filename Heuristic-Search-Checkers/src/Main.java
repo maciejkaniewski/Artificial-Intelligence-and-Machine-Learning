@@ -3,55 +3,40 @@ public class EvaluatePosition // This class is required - don't remove it
 {
     static private final int WIN=Integer.MAX_VALUE/2;
     static private final int LOSE=Integer.MIN_VALUE/2;
-    
+
     static private boolean _color; // This field is required - don't remove it
 
     // pawnOrKing
     private static final int PAWN_VALUE = 15;
     private static final int KING_VALUE = 50; // must be greater thean promotion distance
 
-    // safePawnOrKing
-    private static final int SAFE_PAWN_VALUE = 10;
-    private static final int SAFE_KING_VALUE = 45;
-
     // movablePawnOrKingWithoutCapturing
-    private static final int MOVABLE_PAWN_VALUE = 5;
-    private static final int MOVABLE_KING_VALUE = 35;
+    private static final int MOVABLE_PAWN_VALUE = 12;
+    private static final int MOVABLE_KING_VALUE = 52;
 
     // pieceInCenter
-    private static final int PAWN_CENTER_VALUE = 15;
-    private static final int KING_CENTER_VALUE = 45;
+    private static final int PAWN_CENTER_VALUE = 1;
+    private static final int KING_CENTER_VALUE = 2;
 
     // distanceToPromotion
-    private static final int DISTANCE_PROMOTION_MULTIPLIER = 5; // Max value 30, min value 5
+    private static final int DISTANCE_PROMOTION_MULTIPLIER = 1; // Max value 30, min value 5
 
     // occupiedFieldOnPromotionLine
-    private static final int OCCUPIED_FIELD_ON_PROMOTION_LINE = 20;
+    private static final int OCCUPIED_FIELD_ON_PROMOTION_LINE = 15;
 
     // defenderPiece
-    private static final int DEFENDER_PIECE = 15;
+    private static final int DEFENDER_PIECE = 2;
 
     // attackingPawn
-    private  static final int ATTACKING_PAWN = 8;
+    private  static final int ATTACKING_PAWN = 3;
 
     // pieceOnDiagonal
-    private static final int PAWN_DIAGONAL_VALUE = 12;
-    private static final int KING_DIAGONAL_VALUE = 40;
+    private static final int PAWN_DIAGONAL_VALUE = 1;
+    private static final int KING_DIAGONAL_VALUE = 2;
 
     static private int pawnOrKing(AIBoard board, int row, int column)
     {
         return (board._board[row][column].king) ? KING_VALUE : PAWN_VALUE;
-    }
-
-    static private int safePawnOrKing(AIBoard board, int row, int column)
-    {
-        int size = board.getSize();
-
-        if(row == 0 || row == size - 1 || column == 0 || column == size -1 )
-        {
-            return (board._board[row][column].king) ? SAFE_KING_VALUE : SAFE_PAWN_VALUE;
-        }
-        return 0;
     }
 
     static private int movablePawnOrKingWithoutCapturing(AIBoard board, int row, int column)
@@ -153,12 +138,34 @@ public class EvaluatePosition // This class is required - don't remove it
                     canCaptureInDirection(board, row, column, 1, -1, color) ||
                     canCaptureInDirection(board, row, column, 1, 1, color);
         }
-       else  // regular pieces can only capture forward
+        else  // regular pieces can only capture forward
         {
             return canCaptureInDirection(board, row, column, isWhite ? 1 : -1, -1, color) ||
                     canCaptureInDirection(board, row, column, isWhite ? 1 : -1, 1, color);
         }
     }
+
+    static private boolean isPieceSafe(AIBoard board, int pieceRow, int pieceCol)
+    {
+        // Check if the piece is on the edge of the board
+        if (pieceRow == 0 || pieceRow == 7 || pieceCol == 0 || pieceCol == 7) {
+            return true;
+        }
+
+        // Check if the piece is blocked on both sides
+        if ((!board._board[pieceRow-1][pieceCol-1].empty && !board._board[pieceRow+1][pieceCol+1].empty) ||
+                (!board._board[pieceRow-1][pieceCol+1].empty && !board._board[pieceRow+1][pieceCol-1].empty))
+        {
+            return true;
+        }
+
+        int rowDir = getColor() ? 1 : -1;
+
+        // Check if the piece can be captured
+        return (board._board[pieceRow + rowDir][pieceCol + 1].white == getColor() && board._board[pieceRow + rowDir][pieceCol - 1].white == getColor()) ||
+                (!board._board[pieceRow - rowDir][pieceCol + 1].empty || !board._board[pieceRow - rowDir][pieceCol - 1].empty);
+    }
+
 
     static public void changeColor(boolean color) // This method is required - don't remove it
     {
@@ -183,33 +190,31 @@ public class EvaluatePosition // This class is required - don't remove it
                     if (board._board[i][j].white==getColor()) // this is my piece
                     {
                         myRating += pawnOrKing(board,i,j);
-                        myRating += safePawnOrKing(board,i,j); // OK
-                        myRating += movablePawnOrKingWithoutCapturing(board,i,j); // MEH
+//                        myRating += movablePawnOrKingWithoutCapturing(board,i,j); // MEH
                         myRating += pieceInCenter(board,i,j); // OK
                         myRating += distanceToPromotion(board,i,j); //OK
                         myRating += occupiedFieldOnPromotionLine(board,i,j); // OK
                         myRating += defenderPiece(board,i,j); //OK
                         myRating += attackingPawn(board,i,j); //OK
                         myRating += pieceOnMainDiagonal(board,i,j); //OK
-                        if(canPerformCapture(board,i,j))
+                        if(isPieceSafe(board,i,j))
                         {
-                            myRating += 30;
+                            myRating += 5;
                         }
                     }
                     else
                     {
                         opponentsRating += pawnOrKing(board, i ,j);
-                        opponentsRating += safePawnOrKing(board,i,j); //OK
-                        opponentsRating += movablePawnOrKingWithoutCapturing(board,i,j); //MEH
+//                        opponentsRating += movablePawnOrKingWithoutCapturing(board,i,j); //MEH
                         opponentsRating += pieceInCenter(board,i,j); //OK
                         opponentsRating += distanceToPromotion(board,i,j); //OK
                         opponentsRating += occupiedFieldOnPromotionLine(board,i,j); //OK
                         opponentsRating += defenderPiece(board,i,j); //OK
                         opponentsRating += attackingPawn(board,i,j); //OK
                         opponentsRating += pieceOnMainDiagonal(board,i,j); //OK
-                        if(canPerformCapture(board,i,j))
+                        if(isPieceSafe(board,i,j))
                         {
-                            opponentsRating += 30;
+                            opponentsRating += 5;
                         }
                     }
                 }
