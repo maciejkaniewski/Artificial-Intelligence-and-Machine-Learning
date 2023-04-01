@@ -21,13 +21,9 @@ public class EvaluatePosition // This class is required - don't remove it
     private static final int PAWN_VALUE = 15;
     private static final int KING_VALUE = 50;
 
-    // movablePawnOrKingWithoutCapturing
-    private static final int MOVABLE_PAWN_VALUE = 12;
-    private static final int MOVABLE_KING_VALUE = 52;
-
     // pieceInCenter
-    private static final int PAWN_CENTER_VALUE = 1;
-    private static final int KING_CENTER_VALUE = 2;
+    private static final int PAWN_CENTER_VALUE = 2;
+    private static final int KING_CENTER_VALUE = 3;
 
     // distanceToPromotion
     private static final int DISTANCE_PROMOTION_MULTIPLIER = 1;
@@ -45,11 +41,17 @@ public class EvaluatePosition // This class is required - don't remove it
     private static final int PAWN_DIAGONAL_VALUE = 1;
     private static final int KING_DIAGONAL_VALUE = 2;
 
+    // isPieceSafe
+    private static final int PIECE_IS_SAFE = 5;
+
+    // canPerformCapture
+    private static final int CAN_PERFORM_CAPTURE = 3;
+
     /**
      * @brief Checks whether the piece is pawn or king.
      *
-     * @param board  game board instance
-     * @param row    row where the piece is located
+     * @param board game board instance
+     * @param row row where the piece is located
      * @param column column where the piece is located
      * @retval KING_VALUE when the piece is king
      * @retval PAWN_VALUE when the piece is pawn
@@ -58,20 +60,11 @@ public class EvaluatePosition // This class is required - don't remove it
         return (board._board[row][column].king) ? KING_VALUE : PAWN_VALUE;
     }
 
-    static private int movablePawnOrKingWithoutCapturing(AIBoard board, int row, int column) {
-        int direction = getColor() ? 1 : -1;
-
-        if (board._board[row + direction][column - 1].empty && board._board[row + direction][column + 1].empty) {
-            return (board._board[row][column].king) ? MOVABLE_KING_VALUE : MOVABLE_PAWN_VALUE;
-        }
-        return 0;
-    }
-
     /**
      * @brief Checks whether the piece is in the center of the board.
      *
-     * @param board  game board instance
-     * @param row    row where the piece is located
+     * @param board game board instance
+     * @param row row where the piece is located
      * @param column column where the piece is located
      * @retval KING_CENTER_VALUE when the piece in the center is king
      * @retval PAWN_CENTER_VALUE when the piece is int the center is pawn
@@ -84,8 +77,8 @@ public class EvaluatePosition // This class is required - don't remove it
     /**
      * @brief Checks the distance to the promotion line.
      *
-     * @param board  game board instance
-     * @param row    row where the piece is located
+     * @param board game board instance
+     * @param row row where the piece is located
      * @param column column where the piece is located
      * @return value for current distance from promotion line
      */
@@ -100,8 +93,8 @@ public class EvaluatePosition // This class is required - don't remove it
     /**
      * @brief Checks if the field on promotion line is occupied.
      *
-     * @param board  game board instance
-     * @param row    row where the piece is located
+     * @param board game board instance
+     * @param row row where the piece is located
      * @param column column where the piece is located
      * @retval OCCUPIED_FIELD_ON_PROMOTION_LINE when field is occupied
      * @retval 0 when it is empty
@@ -114,8 +107,8 @@ public class EvaluatePosition // This class is required - don't remove it
     /**
      * @brief Checks if the piece is the defender.
      *
-     * @param board  game board instance
-     * @param row    row where the piece is located
+     * @param board game board instance
+     * @param row row where the piece is located
      * @retval DEFENDER_PIECE when piece is defender
      * @retval 0 when piece isn't defender
      */
@@ -127,8 +120,8 @@ public class EvaluatePosition // This class is required - don't remove it
     /**
      * @brief Checks if the pawn is the attacker.
      *
-     * @param board  game board instance
-     * @param row    row where the piece is located
+     * @param board game board instance
+     * @param row row where the piece is located
      * @param column column where the piece is located
      * @retval ATTACKING_PAWN when pawn is attacker
      * @retval 0 when pawn isn't attacker
@@ -146,8 +139,8 @@ public class EvaluatePosition // This class is required - don't remove it
     /**
      * @brief Checks if the piece is on the main diagonal.
      *
-     * @param board  game board instance
-     * @param row    row where the piece is located
+     * @param board game board instance
+     * @param row row where the piece is located
      * @param column column where the piece is located
      * @retval KING_DIAGONAL_VALUE when king is on the diagonal
      * @retval PAWN_DIAGONAL_VALUE when pawn is on the diagonal
@@ -188,8 +181,8 @@ public class EvaluatePosition // This class is required - don't remove it
     /**
      * @brief Checks if the piece can perform capture in allowed directions.
      *
-     * @param board  game board instance
-     * @param row    row where the piece is located
+     * @param board game board instance
+     * @param row row where the piece is located
      * @param column column where the piece is located
      * @retval true if piece can capture
      * @retval false if piece can't capture
@@ -213,8 +206,8 @@ public class EvaluatePosition // This class is required - don't remove it
     /**
      * @brief Checks if the piece is safe.
      *
-     * @param board  game board instance
-     * @param row    row where the piece is located
+     * @param board game board instance
+     * @param row row where the piece is located
      * @param column column where the piece is located
      * @retval true if piece is safe
      * @retval false if piece is in danger
@@ -252,33 +245,30 @@ public class EvaluatePosition // This class is required - don't remove it
                     if (board._board[i][j].white == getColor()) // this is my piece
                     {
                         myRating += pawnOrKing(board, i, j);
-//                        myRating += movablePawnOrKingWithoutCapturing(board,i,j); // MEH
-                        myRating += pieceInCenter(board, i, j); // OK
-                        myRating += distanceToPromotion(board, i, j); //OK
-                        myRating += occupiedFieldOnPromotionLine(board, i, j); // OK`
-                        myRating += defenderPiece(board, i); //OK
-                        myRating += attackingPawn(board, i, j); //OK
-                        myRating += pieceOnMainDiagonal(board, i, j); //OK
-                        if (isPieceSafe(board, i, j)) myRating += 5;
-                        if (canPerformCapture(board, i, j)) myRating += 3;
+                        myRating += pieceInCenter(board, i, j);
+                        myRating += distanceToPromotion(board, i, j);
+                        myRating += occupiedFieldOnPromotionLine(board, i, j);
+                        myRating += defenderPiece(board, i);
+                        myRating += attackingPawn(board, i, j);
+                        myRating += pieceOnMainDiagonal(board, i, j);
+                        if (isPieceSafe(board, i, j)) myRating += PIECE_IS_SAFE;
+                        if (canPerformCapture(board, i, j)) myRating += CAN_PERFORM_CAPTURE;
                     } else {
                         opponentsRating += pawnOrKing(board, i, j);
-//                        opponentsRating += movablePawnOrKingWithoutCapturing(board,i,j); //MEH
-                        opponentsRating += pieceInCenter(board, i, j); //OK
-                        opponentsRating += distanceToPromotion(board, i, j); //OK
-                        opponentsRating += occupiedFieldOnPromotionLine(board, i, j); //OK
-                        opponentsRating += defenderPiece(board, i); //OK
-                        opponentsRating += attackingPawn(board, i, j); //OK
-                        opponentsRating += pieceOnMainDiagonal(board, i, j); //OK
-                        if (isPieceSafe(board, i, j)) opponentsRating += 5;
-                        if (canPerformCapture(board, i, j)) opponentsRating += 3;
+                        opponentsRating += pieceInCenter(board, i, j);
+                        opponentsRating += distanceToPromotion(board, i, j);
+                        opponentsRating += occupiedFieldOnPromotionLine(board, i, j);
+                        opponentsRating += defenderPiece(board, i);
+                        opponentsRating += attackingPawn(board, i, j);
+                        opponentsRating += pieceOnMainDiagonal(board, i, j);
+                        if (isPieceSafe(board, i, j)) opponentsRating += PIECE_IS_SAFE;
+                        if (canPerformCapture(board, i, j)) opponentsRating += CAN_PERFORM_CAPTURE;
 
                     }
                 }
             }
         }
 
-        //Judge.updateLog("Type your message here, you will see it in the log window\n");
         if (myRating == 0) return LOSE;
         else if (opponentsRating == 0) return WIN;
         else return myRating - opponentsRating;
