@@ -32,7 +32,7 @@ act(Action, Knowledge) :-
 	assert(myPosition(1, 1, east)),		%this we assume by default
 	assert(myTrail([])),
 	assert(stenchesLocation([])),
-	assert(possibleWumpusLocation([])),
+	assert(breezeLocation([])),
 	assert(temp(0)),
 	act(Action, Knowledge).
 
@@ -54,12 +54,15 @@ turn_if_wall(Action, Knowledge) :-
 	stenchesLocation(Old_Stenches),
 	addStench(X,Y,Old_Stenches, New_Stenches),
 
+	breezeLocation(Old_Breeze),
+	addBreeze(X,Y,Old_Breeze, New_Breeze),
+
 	Knowledge = [gameStarted,
 				 myWorldSize(Max_X, Max_Y), 
 				 myPosition(X, Y, NewOrient), 
 				 myTrail(New_Trail),
 				 stenchesLocation(New_Stenches),
-				 possibleWumpusLocation,
+				 breezeLocation(New_Breeze),
 				 temp('turn_if_wall')].
 
 else_move_on(Action, Knowledge) :-
@@ -74,12 +77,15 @@ else_move_on(Action, Knowledge) :-
 	stenchesLocation(Old_Stenches),
 	addStench(X,Y,Old_Stenches, New_Stenches),
 
+	breezeLocation(Old_Breeze),
+	addBreeze(X,Y,Old_Breeze, New_Breeze),
+
 	Knowledge = [gameStarted,
 				 myWorldSize(Max_X, Max_Y),
 				 myPosition(New_X, New_Y, Orient),
 				 myTrail(New_Trail),
 				 stenchesLocation(New_Stenches),
-				 possibleWumpusLocation,
+				 breezeLocation(New_Breeze),
 				 temp('else_move_on')].
 
 
@@ -98,4 +104,5 @@ forwardStep(X, Y, south, X, New_Y) :- New_Y is (Y-1).
 forwardStep(X, Y, west,  New_X, Y) :- New_X is (X-1).
 forwardStep(X, Y, north, X, New_Y) :- New_Y is (Y+1).
 
-addStench(X, Y, Old_Stenches, New_Stenches) :- (stench -> New_Stenches = [[X, Y] | Old_Stenches]; New_Stenches = Old_Stenches).
+addStench(X, Y, Old_Stenches, New_Stenches) :- ((stench, \+ member([X, Y], Old_Stenches))) -> New_Stenches = [[X, Y] | Old_Stenches]; New_Stenches = Old_Stenches.
+addBreeze(X, Y, Old_Breeze, New_Breeze) :- ((breeze, \+ member([X, Y], Old_Breeze))) -> New_Breeze = [[X, Y] | Old_Breeze]; New_Breeze = Old_Breeze.
