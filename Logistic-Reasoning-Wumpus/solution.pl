@@ -27,109 +27,127 @@
   The agent assumes that the starting point is (1,1) and orientation "east".
 */
 
-% auxiliary initial action generating rule
 act(Action, Knowledge) :-
 
-	% To avoid looping on act/2.
 	not(gameStarted),
 	assert(gameStarted),
 
-	% Creating initial knowledge
-	worldSize(X,Y),				%this is given
+	worldSize(X,Y),
 	assert(myWorldSize(X,Y)),
-	assert(myPosition(1, 1, east)),		%this we assume by default
+	assert(myPosition(1, 1, east)),
 	assert(myTrail([])),
 	assert(haveGold(0)),
+	assert(visitedLocation([])),
 	assert(stenchesLocation([])),
 	assert(breezeLocation([])),
 	assert(performedAction(0)),
 	act(Action, Knowledge).
 
-% standard action generating rules
-% this is our agent's algorithm, the rules will be tried in order
-act(Action, Knowledge) :- exit_if_home(Action, Knowledge). %if at home with gold
-act(Action, Knowledge) :- go_back_step(Action, Knowledge). %if have gold elsewhere
-act(Action, Knowledge) :- pick_up_gold(Action, Knowledge). %if just found gold
-act(Action, Knowledge) :- move_away_from_stench(Action, Knowledge).
-act(Action, Knowledge) :- turn_if_wall(Action, Knowledge). %if against the wall
-act(Action, Knowledge) :- else_move_on(Action, Knowledge). %otherwise
+act(Action, Knowledge) :- exit_if_home(Action, Knowledge). % if at home with gold
+act(Action, Knowledge) :- return_to_home_if_gold(Action, Knowledge). % if have gold elsewhere return home
+act(Action, Knowledge) :- pick_up_gold(Action, Knowledge). % if just found gold
+act(Action, Knowledge) :- back_off_from_stench_or_breeze(Action, Knowledge). % if stench/breeze take step back
+act(Action, Knowledge) :- turn_if_wall(Action, Knowledge). % if against the wall
+act(Action, Knowledge) :- else_move_on(Action, Knowledge). % if location not visited move forward
+act(Action, Knowledge) :- turn_left(Action, Knowledge). % otherwise turn left to point to another direction
 
+/**
+ * Agent finishes the game if:
+ * [1] has gold
+ * [2] is on the starting position
+ */
 exit_if_home(Action, Knowledge) :-
+	
 	haveGold(NGolds), NGolds > 0,
 	myPosition(1, 1, Orient),
-	Action = exit,				%done game
-	Knowledge = [].				%irrelevant but required
+	Action = exit,
+	Knowledge = [].	
 
-go_back_step(Action, Knowledge) :-
-	%%% assuming we have just found gold:
-	%%% 1. our last action must have been grab
-	%%% 2. our previuos action must have been moveForward
-	%%% 3. so we are initiating a turnback and then return:
-	%%%    (a) pop grab from the stack
-	%%%    (b) replace it by an artificial turnRight we have never
-	%%%        executed, but we will be reversing by turning left
-	%%%    (c) execute a turnRight now which together will turn us back
-	%%% 4. after that we are facing back and can execute actions in reverse
-	%%% 5. because of grab we can be sure this rule is executed exactly once
+/**
+ * Agent returns to home if:
+ * [1] has gold
+ * [2] last performed action is 'grab'
+ * Initiate a turnback and then return:
+ * (a) pop `grab` from the stack
+ * (b) replace it by an artificial turnRight we have never
+ *	   executed, but we will be reversing by turning left
+ * (c) execute a turnRight now which together will turn us back
+ * (d) after that we are facing back and can execute actions in reverse
+ */
+return_to_home_if_gold(Action, Knowledge) :-
+
 	haveGold(NGolds), NGolds > 0,
 	myWorldSize(Max_X, Max_Y),
 	myTrail(Trail),
 	Trail = [ [grab,X,Y,Orient] | Trail_Tail ],
-	New_Trail = [ [turnRight,X,Y,Orient] | Trail_Tail ], %Orient is misleading here
+	New_Trail = [ [turnRight,X,Y,Orient] | Trail_Tail ], 
 	Action = turnLeft,
+	
 	Knowledge = [gameStarted,
 	             haveGold(NGolds),
 		         myWorldSize(Max_X, Max_Y),
 		         myPosition(X, Y, Orient),
 		         myTrail(New_Trail)].
 
-go_back_step(Action, Knowledge) :-
+return_to_home_if_gold(Action, Knowledge) :-
 	
 	haveGold(NGolds), NGolds > 0,
 	myWorldSize(Max_X, Max_Y),
 	myTrail([ [Action,X,Y,Orient] | Trail_Tail ]),
 	Action = moveForward,
+	
 	Knowledge = [gameStarted,
 	             haveGold(NGolds),
 		         myWorldSize(Max_X, Max_Y),
 		         myPosition(X, Y, Orient),
 		         myTrail(Trail_Tail)].
 
-%%% backtracking a step can be moving or can be turning
-go_back_step(Action, Knowledge) :- go_back_turn(Action, Knowledge).
-
-go_back_turn(Action, Knowledge) :-
+return_to_home_if_gold(Action, Knowledge) :- 
 	
 	haveGold(NGolds), NGolds > 0,
 	myWorldSize(Max_X, Max_Y),
 	myTrail([ [OldAct,X,Y,Orient] | Trail_Tail ]),
-	%% if our previous action was a turn, we must reverse it now
 	((OldAct=turnLeft,Action=turnRight);(OldAct=turnRight,Action=turnLeft)),
+	
 	Knowledge = [gameStarted,
 	             haveGold(NGolds),
 		         myWorldSize(Max_X, Max_Y),
 		         myPosition(X, Y, Orient),
 		         myTrail(Trail_Tail)].
 
+/**
+ * Agent picks up gold if:
+ * [1] there is glitter on his location
+ * Increment gold value by 1
+ */
 pick_up_gold(Action, Knowledge) :-
 	
 	glitter,
-	Action = grab,			    %this is easy, we are sitting on it
-	haveGold(NGolds),		    %we must know how many golds we have
+	Action = grab,	    
+	haveGold(NGolds),
 	NewNGolds is NGolds + 1,
 	myWorldSize(Max_X, Max_Y),
 	myPosition(X, Y, Orient),
 	myTrail(Trail),
-	New_Trail = [ [Action,X,Y,Orient] | Trail ], %important to remember grab
+	New_Trail = [ [Action,X,Y,Orient] | Trail ],
+	
 	Knowledge = [gameStarted,
 	             haveGold(NewNGolds),
 				 myWorldSize(Max_X, Max_Y),
-				 myPosition(X, Y, Orient),	%the position stays the same
+				 myPosition(X, Y, Orient),
 				 myTrail(New_Trail)].
 
-move_away_from_stench(Action, Knowledge) :-
+/**
+ * Agent permorms back off sequence if:
+ * [1] there is stench or breeze on his location
+ * Initiate following sequence:
+ * (a) turnLeft
+ * (b) turnLeft
+ * (c) moveForward
+ */
+back_off_from_stench_or_breeze(Action, Knowledge) :-
 
-	stench,
+	(stench;breeze),
 	not(predicateStep(Step)),
 
 	haveGold(NGolds),
@@ -140,6 +158,9 @@ move_away_from_stench(Action, Knowledge) :-
 
 	Action = turnLeft,			%always successful
 	shiftOrient(Orient, NewOrient),		%always successful
+
+	visitedLocation(Old_Location),
+	addLocation(X,Y, Old_Location, New_Location),
 
 	stenchesLocation(Old_Stenches),
 	addStench(X,Y,Old_Stenches, New_Stenches),
@@ -152,14 +173,15 @@ move_away_from_stench(Action, Knowledge) :-
 				 myWorldSize(Max_X, Max_Y), 
 				 myPosition(X, Y, NewOrient), 
 				 myTrail(Trail),
+				 visitedLocation(New_Location),
 				 stenchesLocation(New_Stenches),
 				 breezeLocation(New_Breeze),
-				 performedAction('move_away_from_stench_1/3'),
+				 performedAction('back_off_from_stench_or_breeze_1/3'),
 				 predicateStep(1)].
 		
-move_away_from_stench(Action, Knowledge) :-
+back_off_from_stench_or_breeze(Action, Knowledge) :-
 
-	stench,
+	(stench;breeze),
 	predicateStep(Step), Step == 1,
 
 	haveGold(NGolds),
@@ -168,8 +190,11 @@ move_away_from_stench(Action, Knowledge) :-
 	myWorldSize(Max_X,Max_Y),
 	myTrail(Trail),
 
-	Action = turnLeft,			%always successful
-	shiftOrient(Orient, NewOrient),		%always successful
+	Action = turnLeft,
+	shiftOrient(Orient, NewOrient),
+
+	visitedLocation(Old_Location),
+	addLocation(X,Y, Old_Location, New_Location),
 
 	stenchesLocation(Old_Stenches),
 	addStench(X,Y,Old_Stenches, New_Stenches),
@@ -182,14 +207,15 @@ move_away_from_stench(Action, Knowledge) :-
 				 myWorldSize(Max_X, Max_Y), 
 				 myPosition(X, Y, NewOrient), 
 				 myTrail(Trail),
+				 visitedLocation(New_Location),
 				 stenchesLocation(New_Stenches),
 				 breezeLocation(New_Breeze),
-				 performedAction('move_away_from_stench_2/3'),
+				 performedAction('back_off_from_stench_or_breeze_2/3'),
 				 predicateStep(2)].
 		
-move_away_from_stench(Action, Knowledge) :-
+back_off_from_stench_or_breeze(Action, Knowledge) :-
 
-	stench,
+	(stench;breeze),
 	predicateStep(Step), Step == 2,
 
 	haveGold(NGolds),
@@ -200,6 +226,9 @@ move_away_from_stench(Action, Knowledge) :-
 
 	Action = moveForward,
 	forwardStep(X, Y, Orient, New_X, New_Y),
+
+	visitedLocation(Old_Location),
+	addLocation(X,Y, Old_Location, New_Location),
 
 	stenchesLocation(Old_Stenches),
 	addStench(X,Y,Old_Stenches, New_Stenches),
@@ -212,20 +241,24 @@ move_away_from_stench(Action, Knowledge) :-
 				 myWorldSize(Max_X, Max_Y), 
 				 myPosition(New_X, New_Y, Orient), 
 				 myTrail(Trail),
+				 visitedLocation(New_Location),
 				 stenchesLocation(New_Stenches),
 				 breezeLocation(New_Breeze),
-				 performedAction('move_away_from_stench_3/3')].
+				 performedAction('back_off_from_stench_or_breeze_3/3')].
 
 turn_if_wall(Action, Knowledge) :-
 	
 	myPosition(X, Y, Orient),
 	myWorldSize(Max_X,Max_Y),
 	againstWall(X, Y, Orient, Max_X, Max_Y),
-	Action = turnLeft,			%always successful
-	shiftOrient(Orient, NewOrient),		%always successful
+	Action = turnLeft,
+	shiftOrient(Orient, NewOrient),
 	haveGold(NGolds),
 	myTrail(Trail),
 	New_Trail = [ [Action,X,Y,Orient] | Trail ],
+
+	visitedLocation(Old_Location),
+	addLocation(X,Y, Old_Location, New_Location),
 
 	stenchesLocation(Old_Stenches),
 	addStench(X,Y,Old_Stenches, New_Stenches),
@@ -238,19 +271,24 @@ turn_if_wall(Action, Knowledge) :-
 				 myWorldSize(Max_X, Max_Y),
 				 myPosition(X, Y, NewOrient),
 				 myTrail(New_Trail),
+				 visitedLocation(New_Location),
 				 stenchesLocation(New_Stenches),
 				 breezeLocation(New_Breeze),
 				 performedAction('turn_if_wall')].
 
 else_move_on(Action, Knowledge) :-
 	
-	Action = moveForward,			%this will fail on a wall
+	Action = moveForward,
 	haveGold(NGolds),
 	myWorldSize(Max_X,Max_Y),
 	myPosition(X, Y, Orient),
 	forwardStep(X, Y, Orient, New_X, New_Y),
 	myTrail(Trail),
 	New_Trail = [ [Action,X,Y,Orient] | Trail ],
+
+	visitedLocation(Old_Location),
+	not(alreadyVisited(X, Y, Orient, Old_Location)),
+	addLocation(X,Y, Old_Location, New_Location),
 
 	stenchesLocation(Old_Stenches),
 	addStench(X,Y,Old_Stenches, New_Stenches),
@@ -263,9 +301,39 @@ else_move_on(Action, Knowledge) :-
 				 myWorldSize(Max_X, Max_Y),
 				 myPosition(New_X, New_Y, Orient),
 				 myTrail(New_Trail),
+				 visitedLocation(New_Location),
 				 stenchesLocation(New_Stenches),
 				 breezeLocation(New_Breeze),
 				 performedAction('else_move_on')].
+
+turn_left(Action, Knowledge) :-
+
+	myPosition(X, Y, Orient),
+	myWorldSize(Max_X,Max_Y),
+	Action = turnLeft,
+	shiftOrient(Orient, NewOrient),
+	haveGold(NGolds),
+	myTrail(Trail),
+	New_Trail = [ [Action,X,Y,Orient] | Trail ],
+
+	visitedLocation(Old_Location),
+	addLocation(X,Y, Old_Location, New_Location),
+
+	stenchesLocation(Old_Stenches),
+	addStench(X,Y,Old_Stenches, New_Stenches),
+
+	breezeLocation(Old_Breeze),
+	addBreeze(X,Y,Old_Breeze, New_Breeze),
+
+	Knowledge = [gameStarted,
+				 haveGold(NGolds),
+				 myWorldSize(Max_X, Max_Y),
+				 myPosition(X, Y, NewOrient),
+				 myTrail(New_Trail),
+				 visitedLocation(New_Location),
+				 stenchesLocation(New_Stenches),
+				 breezeLocation(New_Breeze),
+				 performedAction('turn_left')].
 				
 againstWall(X, Y, Orient, Max_X, Max_Y) :- X = Max_X, Y = Y, Orient = east.
 againstWall(X, Y, Orient, Max_X, Max_Y) :- X = X, Y = Max_Y, Orient = north.
@@ -284,3 +352,6 @@ forwardStep(X, Y, north, X, New_Y) :- New_Y is (Y+1).
 
 addStench(X, Y, Old_Stenches, New_Stenches) :- ((stench, \+ member([X, Y], Old_Stenches))) -> New_Stenches = [[X, Y] | Old_Stenches]; New_Stenches = Old_Stenches.
 addBreeze(X, Y, Old_Breeze, New_Breeze) :- ((breeze, \+ member([X, Y], Old_Breeze))) -> New_Breeze = [[X, Y] | Old_Breeze]; New_Breeze = Old_Breeze.
+addLocation(X, Y, Old_Location, New_Location) :- not((member([X, Y], Old_Location))) -> New_Location = [[X, Y] | Old_Location]; New_Location = Old_Location.
+
+alreadyVisited(X, Y, Orient, VisitedLocation) :- forwardStep(X, Y, Orient, Next_X, Next_Y), member([Next_X, Next_Y], VisitedLocation).
