@@ -40,6 +40,7 @@ act(Action, Knowledge) :-
 	assert(visitedLocation([])),
 	assert(stenchesLocation([])),
 	assert(possibleWumpusLocation([])),
+	assert(possiblePitLocation([])),
 	assert(breezeLocation([])),
 	assert(performedAction(0)),
 	act(Action, Knowledge).
@@ -173,6 +174,9 @@ back_off_from_stench_or_breeze(Action, Knowledge) :-
 	breezeLocation(Old_Breeze),
 	addBreeze(X,Y,Old_Breeze, New_Breeze),
 
+	possiblePitLocation(Old_Pit_Location),
+	addPossiblePit(New_Breeze, New_Pit_Location),
+
 	Knowledge = [gameStarted,
 				 haveGold(NGolds),
 				 myWorldSize(Max_X, Max_Y), 
@@ -182,6 +186,7 @@ back_off_from_stench_or_breeze(Action, Knowledge) :-
 				 stenchesLocation(New_Stenches),
 				 possibleWumpusLocation(New_Wumpus_Location),
 				 breezeLocation(New_Breeze),
+				 possiblePitLocation(New_Pit_Location),
 				 performedAction('back_off_from_stench_or_breeze_1/3'),
 				 predicateStep(1)].
 		
@@ -211,6 +216,9 @@ back_off_from_stench_or_breeze(Action, Knowledge) :-
 	breezeLocation(Old_Breeze),
 	addBreeze(X,Y,Old_Breeze, New_Breeze),
 
+	possiblePitLocation(Old_Pit_Location),
+	addPossiblePit(New_Breeze, New_Pit_Location),
+
 	Knowledge = [gameStarted,
 	   			 haveGold(NGolds),
 				 myWorldSize(Max_X, Max_Y), 
@@ -220,6 +228,7 @@ back_off_from_stench_or_breeze(Action, Knowledge) :-
 				 stenchesLocation(New_Stenches),
 				 possibleWumpusLocation(New_Wumpus_Location),
 				 breezeLocation(New_Breeze),
+				 possiblePitLocation(New_Pit_Location),
 				 performedAction('back_off_from_stench_or_breeze_2/3'),
 				 predicateStep(2)].
 		
@@ -249,6 +258,9 @@ back_off_from_stench_or_breeze(Action, Knowledge) :-
 	breezeLocation(Old_Breeze),
 	addBreeze(X,Y,Old_Breeze, New_Breeze),
 
+	possiblePitLocation(Old_Pit_Location),
+	addPossiblePit(New_Breeze, New_Pit_Location),
+
 	Knowledge = [gameStarted,
 				 haveGold(NGolds),
 				 myWorldSize(Max_X, Max_Y), 
@@ -258,6 +270,7 @@ back_off_from_stench_or_breeze(Action, Knowledge) :-
 				 stenchesLocation(New_Stenches),
 				 possibleWumpusLocation(New_Wumpus_Location),
 				 breezeLocation(New_Breeze),
+				 possiblePitLocation(New_Pit_Location),
 				 performedAction('back_off_from_stench_or_breeze_3/3')].
 
 turn_if_wall(Action, Knowledge) :-
@@ -278,10 +291,13 @@ turn_if_wall(Action, Knowledge) :-
 	addStench(X,Y,Old_Stenches, New_Stenches),
 
 	possibleWumpusLocation(Old_Wumpus_Location),
-	addPossibleWumpus(New_Stenches, New_Wumpus_Location),
+	%addPossibleWumpus(New_Stenches, New_Wumpus_Location),
 
 	breezeLocation(Old_Breeze),
 	addBreeze(X,Y,Old_Breeze, New_Breeze),
+
+	possiblePitLocation(Old_Pit_Location),
+	addPossiblePit(New_Breeze, New_Pit_Location),
 
 	Knowledge = [gameStarted,
 				 haveGold(NGolds),
@@ -290,8 +306,9 @@ turn_if_wall(Action, Knowledge) :-
 				 myTrail(New_Trail),
 				 visitedLocation(New_Location),
 				 stenchesLocation(New_Stenches),
-				 possibleWumpusLocation(New_Wumpus_Location),
+				 possibleWumpusLocation(Old_Wumpus_Location),
 				 breezeLocation(New_Breeze),
+				 possiblePitLocation(New_Pit_Location),
 				 performedAction('turn_if_wall')].
 
 else_move_on(Action, Knowledge) :-
@@ -312,10 +329,13 @@ else_move_on(Action, Knowledge) :-
 	addStench(X,Y,Old_Stenches, New_Stenches),
 
 	possibleWumpusLocation(Old_Wumpus_Location),
-	addPossibleWumpus(New_Stenches, New_Wumpus_Location),
+	%addPossibleWumpus(New_Stenches, New_Wumpus_Location),
 
 	breezeLocation(Old_Breeze),
 	addBreeze(X,Y,Old_Breeze, New_Breeze),
+
+	possiblePitLocation(Old_Pit_Location),
+	addPossiblePit(New_Breeze, New_Pit_Location),
 
 	Knowledge = [gameStarted,
 				 haveGold(NGolds),
@@ -324,8 +344,9 @@ else_move_on(Action, Knowledge) :-
 				 myTrail(New_Trail),
 				 visitedLocation(New_Location),
 				 stenchesLocation(New_Stenches),
-				 possibleWumpusLocation(New_Wumpus_Location),
+				 possibleWumpusLocation(Old_Wumpus_Location),
 				 breezeLocation(New_Breeze),
+				 possiblePitLocation(New_Pit_Location),
 				 performedAction('else_move_on')].
 
 turn_left(Action, Knowledge) :-
@@ -345,10 +366,13 @@ turn_left(Action, Knowledge) :-
 	addStench(X,Y,Old_Stenches, New_Stenches),
 
 	possibleWumpusLocation(Old_Wumpus_Location),
-	addPossibleWumpus(New_Stenches, New_Wumpus_Location),
+	%addPossibleWumpus(New_Stenches, New_Wumpus_Location),
 
 	breezeLocation(Old_Breeze),
 	addBreeze(X,Y,Old_Breeze, New_Breeze),
+
+	possiblePitLocation(Old_Pit_Location),
+	addPossiblePit(New_Breeze, New_Pit_Location),
 
 	Knowledge = [gameStarted,
 				 haveGold(NGolds),
@@ -357,8 +381,9 @@ turn_left(Action, Knowledge) :-
 				 myTrail(New_Trail),
 				 visitedLocation(New_Location),
 				 stenchesLocation(New_Stenches),
-				 possibleWumpusLocation(New_Wumpus_Location),
+				 possibleWumpusLocation(Old_Wumpus_Location),
 				 breezeLocation(New_Breeze),
+				 possiblePitLocation(New_Pit_Location),
 				 performedAction('turn_left')].
 				
 againstWall(X, Y, Orient, Max_X, Max_Y) :- X = Max_X, Y = Y, Orient = east.
@@ -383,14 +408,20 @@ addLocation(X, Y, Old_Location, New_Location) :- not((member([X, Y], Old_Locatio
 alreadyVisited(X, Y, Orient, VisitedLocation) :- forwardStep(X, Y, Orient, Next_X, Next_Y), member([Next_X, Next_Y], VisitedLocation).
 
 addPossibleWumpus(New_Stenches, New_Wumpus_Location) :- 
+	
+	calculatePossibleDangerLocation(New_Stenches, Tmp),
+	(findDuplicate(Tmp, Duplicate) -> New_Wumpus_Location = Duplicate ; findCommonCoords(Tmp, New_Wumpus_Location)).
 
-	calculatePossibleDangerLocation(New_Stenches, ResultList),
-	New_Wumpus_Location = ResultList.
+addPossiblePit(New_Breeze, New_Pit_Location) :- 
+
+	calculatePossibleDangerLocation(New_Breeze, New_Pit_Location).
 	
 
 calculatePossibleDangerLocation([], []).
 calculatePossibleDangerLocation([[X,Y]|Rest], Result) :-
+	
 	myWorldSize(Max_X,Max_Y),
+	visitedLocation(Vistited_Location),
     X1 is X - 1, Y1 is Y,
     X2 is X + 1, Y2 is Y,
     X3 is X, Y3 is Y + 1,
@@ -401,4 +432,34 @@ calculatePossibleDangerLocation([[X,Y]|Rest], Result) :-
     (X4 >= 1, X4 =< Max_X, Y4 >= 1, Y4 =< Max_Y, [X4,Y4] \= [1,1] -> C4 = [X4,Y4] ; C4 = []),
     calculatePossibleDangerLocation(Rest, RestResult),
     append([C1,C2,C3,C4], RestResult, ResultTmp),
-	findall([H|T],member([H|T],ResultTmp),Result).
+	findall([H|T],member([H|T],ResultTmp),ResultTmp2),
+	removeCommonElements(ResultTmp2, Vistited_Location, Result).
+	
+
+findCommonCoords([], []).
+findCommonCoords([[X,Y]|Rest], Result) :-
+	
+	myWorldSize(Max_X,Max_Y),
+	myPosition(X_Pos, Y_Pos, Orient),
+	visitedLocation(Vistited_Location),
+	stenchesLocation(Stenches),
+    X1 is X - 1, Y1 is Y,
+    X2 is X + 1, Y2 is Y,
+    X3 is X, Y3 is Y + 1,
+    X4 is X, Y4 is Y - 1,
+    (X1 >= 1, X1 =< Max_X, Y1 >= 1, Y1 =< Max_Y, [X1,Y1] \= [1,1], [X1,Y1] \= [X_Pos, Y_Pos] -> C1 = [X1,Y1] ; C1 = []),
+    (X2 >= 1, X2 =< Max_X, Y2 >= 1, Y2 =< Max_Y, [X2,Y2] \= [1,1], [X2,Y2] \= [X_Pos, Y_Pos] -> C2 = [X2,Y2] ; C2 = []),
+    (X3 >= 1, X3 =< Max_X, Y3 >= 1, Y3 =< Max_Y, [X3,Y3] \= [1,1], [X3,Y3] \= [X_Pos, Y_Pos] -> C3 = [X3,Y3] ; C3 = []),
+    (X4 >= 1, X4 =< Max_X, Y4 >= 1, Y4 =< Max_Y, [X4,Y4] \= [1,1], [X4,Y4] \= [X_Pos, Y_Pos] -> C4 = [X4,Y4] ; C4 = []),
+	findall([H|T],member([H|T],[C1,C2,C3,C4]),AdjacentCoords), % Remove empty entries
+    findall(Element, (member(Element, AdjacentCoords), member(Element, Vistited_Location)),  CommonCoords),
+    ((CommonCoords = []) -> append([[X,Y]], RestResult, Result) ; (member(CommonCoords, Stenches) -> append([[X,Y]], RestResult, Result) ; Result = RestResult)),
+    findCommonCoords(Rest, RestResult).
+
+findDuplicate([], _) :- fail.
+findDuplicate([H|T], H) :- member(H, T).
+findDuplicate([_|T], Dup) :- findDuplicate(T, Dup).
+
+removeCommonElements([], _, []).
+removeCommonElements([X|Rest], List2, Result) :- member(X, List2), !, removeCommonElements(Rest, List2, Result).
+removeCommonElements([X|Rest], List2, [X|Result]) :- removeCommonElements(Rest, List2, Result).
