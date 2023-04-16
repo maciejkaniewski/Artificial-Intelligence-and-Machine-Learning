@@ -283,6 +283,9 @@ back_off_from_stench_or_breeze(Action, Knowledge) :-
 	myWorldSize(Max_X,Max_Y),
 	myTrail(Trail),
 
+	arrows(Arrows), Arrows > 0,
+	wumpus(Wumpus), Wumpus > 0,
+
 	visitedLocation(Old_Location),
 	addLocation(X,Y, Old_Location, New_Location),
 
@@ -290,7 +293,7 @@ back_off_from_stench_or_breeze(Action, Knowledge) :-
 	addStench(X,Y,Old_Stenches, New_Stenches),
 
 	possibleWumpusLocation(Old_Wumpus_Location),
-	addPossibleWumpus(New_Stenches, New_Wumpus_Location),
+	((Wumpus > 0, stench) -> addPossibleWumpus(New_Stenches, New_Wumpus_Location) ; true, New_Wumpus_Location = Old_Wumpus_Location),
 
 	length(New_Wumpus_Location, 1), % If there is only one possible location
 	[[X_Wumpus, Y_Wumpus]] = New_Wumpus_Location, % Extract coordinates
@@ -302,10 +305,7 @@ back_off_from_stench_or_breeze(Action, Knowledge) :-
 	addBreeze(X,Y,Old_Breeze, New_Breeze),
 
 	possiblePitLocation(Old_Pit_Location),
-	addPossiblePit(New_Breeze, New_Pit_Location),
-
-	arrows(Arrows), Arrows > 0,
-	wumpus(Wumpus), Wumpus > 0,
+	((breeze) -> addPossiblePit(New_Breeze, New_Pit_Location); true, New_Pit_Location = Old_Pit_Location),
 
 	deletedPitPredictions(Old_Deleted_Pit_Pred),
 	deletedWumpusPredictions(Old_Deleted_Wumpus_Pred),
@@ -337,6 +337,9 @@ back_off_from_stench_or_breeze(Action, Knowledge) :-
 	myWorldSize(Max_X,Max_Y),
 	myTrail(Trail),
 
+	arrows(Arrows), Arrows > 0,
+	wumpus(Wumpus), Wumpus > 0,
+
 	visitedLocation(Old_Location),
 	addLocation(X,Y, Old_Location, New_Location),
 
@@ -344,7 +347,7 @@ back_off_from_stench_or_breeze(Action, Knowledge) :-
 	addStench(X,Y,Old_Stenches, New_Stenches),
 
 	possibleWumpusLocation(Old_Wumpus_Location),
-	addPossibleWumpus(New_Stenches, New_Wumpus_Location),
+	((Wumpus > 0, stench) -> addPossibleWumpus(New_Stenches, New_Wumpus_Location) ; true, New_Wumpus_Location = Old_Wumpus_Location),
 
 	length(New_Wumpus_Location, 1), % If there is only one possible location
 	[[X_Wumpus, Y_Wumpus]] = New_Wumpus_Location, % Extract coordinates
@@ -357,10 +360,7 @@ back_off_from_stench_or_breeze(Action, Knowledge) :-
 	addBreeze(X,Y,Old_Breeze, New_Breeze),
 
 	possiblePitLocation(Old_Pit_Location),
-	addPossiblePit(New_Breeze, New_Pit_Location),
-
-	arrows(Arrows), Arrows > 0,
-	wumpus(Wumpus), Wumpus > 0,
+	((breeze) -> addPossiblePit(New_Breeze, New_Pit_Location); true, New_Pit_Location = Old_Pit_Location),
 
 	deletedPitPredictions(Old_Deleted_Pit_Pred),
 	deletedWumpusPredictions(Old_Deleted_Wumpus_Pred),
@@ -405,6 +405,9 @@ back_off_from_stench_or_breeze(Action, Knowledge) :-
 	shiftOrient(Orient, NewOrient),		%always successful
 	New_Trail = [ [Action,X,Y,Orient] | Trail ],
 
+	arrows(Arrows),
+	wumpus(Wumpus),
+
 	visitedLocation(Old_Location),
 	addLocation(X,Y, Old_Location, New_Location),
 
@@ -412,19 +415,22 @@ back_off_from_stench_or_breeze(Action, Knowledge) :-
 	addStench(X,Y,Old_Stenches, New_Stenches),
 
 	possibleWumpusLocation(Old_Wumpus_Location),
-	addPossibleWumpus(New_Stenches, New_Wumpus_Location),
+	((Wumpus > 0, stench) -> addPossibleWumpus(New_Stenches, New_Wumpus_Location_Tmp) ; true, New_Wumpus_Location_Tmp = Old_Wumpus_Location),
 
 	breezeLocation(Old_Breeze),
 	addBreeze(X,Y,Old_Breeze, New_Breeze),
 
 	possiblePitLocation(Old_Pit_Location),
-	addPossiblePit(New_Breeze, New_Pit_Location),
+	((breeze) -> addPossiblePit(New_Breeze, New_Pit_Location_Tmp); true, New_Pit_Location_Tmp = Old_Pit_Location),
 
-	arrows(Arrows),
-	wumpus(Wumpus),
+	validatePrediction(New_Wumpus_Location_Tmp, New_Stenches, New_Location, New_Wumpus_Location, Deleted_W),
+	validatePrediction(New_Pit_Location_Tmp, New_Breeze, New_Location, New_Pit_Location, Deleted_P),
+
+	deletedWumpusPredictions(Old_Deleted_Wumpus_Pred),
+	addDeletedPred(Deleted_W, Old_Deleted_Wumpus_Pred, New_Deleted_Wumpus_Pred),
 
 	deletedPitPredictions(Old_Deleted_Pit_Pred),
-	deletedWumpusPredictions(Old_Deleted_Wumpus_Pred),
+	addDeletedPred(Deleted_P, Old_Deleted_Pit_Pred, New_Deleted_Pit_Pred), 
 
 	Knowledge = [gameStarted,
 				 haveGold(NGolds),
@@ -438,8 +444,8 @@ back_off_from_stench_or_breeze(Action, Knowledge) :-
 				 possiblePitLocation(New_Pit_Location),
 				 arrows(Arrows),
 				 wumpus(Wumpus),
-				 deletedPitPredictions(Old_Deleted_Pit_Pred),
-				 deletedWumpusPredictions(Old_Deleted_Wumpus_Pred),
+				 deletedPitPredictions(New_Deleted_Pit_Pred),
+				 deletedWumpusPredictions(New_Deleted_Wumpus_Pred),
 				 performedAction('back_off_from_stench_or_breeze_1/3'),
 				 predicateStep(1)].
 
@@ -460,6 +466,9 @@ back_off_from_stench_or_breeze(Action, Knowledge) :-
 	shiftOrient(Orient, NewOrient),
 	New_Trail = [ [Action,X,Y,Orient] | Trail ],
 
+	arrows(Arrows),
+	wumpus(Wumpus),
+
 	visitedLocation(Old_Location),
 	addLocation(X,Y, Old_Location, New_Location),
 
@@ -467,17 +476,13 @@ back_off_from_stench_or_breeze(Action, Knowledge) :-
 	addStench(X,Y,Old_Stenches, New_Stenches),
 
 	possibleWumpusLocation(Old_Wumpus_Location),
-
-	addPossibleWumpus(New_Stenches, New_Wumpus_Location),
+	((Wumpus > 0, stench) -> addPossibleWumpus(New_Stenches, New_Wumpus_Location) ; true, New_Wumpus_Location = Old_Wumpus_Location),
 
 	breezeLocation(Old_Breeze),
 	addBreeze(X,Y,Old_Breeze, New_Breeze),
 
 	possiblePitLocation(Old_Pit_Location),
-	addPossiblePit(New_Breeze, New_Pit_Location),
-
-	arrows(Arrows),
-	wumpus(Wumpus),
+	((breeze) -> addPossiblePit(New_Breeze, New_Pit_Location); true, New_Pit_Location = Old_Pit_Location),
 
 	deletedPitPredictions(Old_Deleted_Pit_Pred),
 	deletedWumpusPredictions(Old_Deleted_Wumpus_Pred),
@@ -515,6 +520,9 @@ back_off_from_stench_or_breeze(Action, Knowledge) :-
 	forwardStep(X, Y, Orient, New_X, New_Y),
 	New_Trail = [ [Action,X,Y,Orient] | Trail ],
 
+	arrows(Arrows),
+	wumpus(Wumpus),
+
 	visitedLocation(Old_Location),
 	addLocation(X,Y, Old_Location, New_Location),
 
@@ -522,16 +530,13 @@ back_off_from_stench_or_breeze(Action, Knowledge) :-
 	addStench(X,Y,Old_Stenches, New_Stenches),
 	
 	possibleWumpusLocation(Old_Wumpus_Location),
-	addPossibleWumpus(New_Stenches, New_Wumpus_Location),
+	((Wumpus > 0, stench) -> addPossibleWumpus(New_Stenches, New_Wumpus_Location) ; true, New_Wumpus_Location = Old_Wumpus_Location),
 
 	breezeLocation(Old_Breeze),
 	addBreeze(X,Y,Old_Breeze, New_Breeze),
 
 	possiblePitLocation(Old_Pit_Location),
-	addPossiblePit(New_Breeze, New_Pit_Location),
-
-	arrows(Arrows),
-	wumpus(Wumpus),
+	((breeze) -> addPossiblePit(New_Breeze, New_Pit_Location); true, New_Pit_Location = Old_Pit_Location),
 
 	deletedPitPredictions(Old_Deleted_Pit_Pred),
 	deletedWumpusPredictions(Old_Deleted_Wumpus_Pred),
