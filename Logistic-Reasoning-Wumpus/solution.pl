@@ -192,6 +192,9 @@ wumpus_scream(Action, Knowledge) :-
 	arrows(Arrows), Arrows = 0,
 	wumpus(Wumpus), Wumpus > 0,
 
+	deletedPitPredictions(Old_Deleted_Pit_Pred),
+	deletedWumpusPredictions(Old_Deleted_Wumpus_Pred),
+
 	Knowledge = [gameStarted,
 					haveGold(NGolds),
 					myWorldSize(Max_X, Max_Y), 
@@ -204,6 +207,8 @@ wumpus_scream(Action, Knowledge) :-
 					possiblePitLocation(New_Pit_Location),
 					arrows(Arrows),
 					wumpus(0),
+					deletedPitPredictions(Old_Deleted_Pit_Pred),
+					deletedWumpusPredictions(Old_Deleted_Wumpus_Pred),
 					performedAction('wumpus_scream')].
 				
 
@@ -226,20 +231,29 @@ shoot_wumpus(Action, Knowledge) :-
 	addStench(X,Y,Old_Stenches, New_Stenches),
 
 	possibleWumpusLocation(Old_Wumpus_Location),
-	addPossibleWumpus(New_Stenches, New_Wumpus_Location),
+	addPossibleWumpus(New_Stenches, New_Wumpus_Location_Tmp),
 
-	((length(Old_Wumpus_Location, 1));(length(New_Wumpus_Location, 1))), % If there is only one location
+	((length(Old_Wumpus_Location, 1));(length(New_Wumpus_Location_Tmp, 1))), % If there is only one location
 	forwardStep(X, Y, Orient, Tmp_X, Tmp_Y), % Simulate move forward
-	((listsEqual([[Tmp_X, Tmp_Y]], Old_Wumpus_Location)); (listsEqual([[Tmp_X, Tmp_Y]], New_Wumpus_Location))),% Check if facing wumpus
+	((listsEqual([[Tmp_X, Tmp_Y]], Old_Wumpus_Location)); (listsEqual([[Tmp_X, Tmp_Y]], New_Wumpus_Location_Tmp))),% Check if facing wumpus
 
 	breezeLocation(Old_Breeze),
 	addBreeze(X,Y,Old_Breeze, New_Breeze),
 
 	possiblePitLocation(Old_Pit_Location),
-	addPossiblePit(New_Breeze, New_Pit_Location),
+	addPossiblePit(New_Breeze, New_Pit_Location_Tmp),
 
 	arrows(Arrows), Arrows > 0,
 	wumpus(Wumpus), Wumpus > 0,
+
+	validatePrediction(New_Wumpus_Location_Tmp, New_Stenches, New_Location, New_Wumpus_Location, Deleted_W),
+	validatePrediction(New_Pit_Location_Tmp, New_Breeze, New_Location, New_Pit_Location, Deleted_P),
+
+	deletedWumpusPredictions(Old_Deleted_Wumpus_Pred),
+	addDeletedPred(Deleted_W, Old_Deleted_Wumpus_Pred, New_Deleted_Wumpus_Pred),
+
+	deletedPitPredictions(Old_Deleted_Pit_Pred),
+	addDeletedPred(Deleted_P, Old_Deleted_Pit_Pred, New_Deleted_Pit_Pred), 
 
 	Knowledge = [gameStarted,
 				 haveGold(NGolds),
@@ -253,6 +267,8 @@ shoot_wumpus(Action, Knowledge) :-
 				 possiblePitLocation(New_Pit_Location),
 				 arrows(0),
 				 wumpus(Wumpus),
+				 deletedPitPredictions(New_Deleted_Pit_Pred),
+				 deletedWumpusPredictions(New_Deleted_Wumpus_Pred),
 				 performedAction('shoot_wumpus')].
 
 
@@ -291,6 +307,9 @@ back_off_from_stench_or_breeze(Action, Knowledge) :-
 	arrows(Arrows), Arrows > 0,
 	wumpus(Wumpus), Wumpus > 0,
 
+	deletedPitPredictions(Old_Deleted_Pit_Pred),
+	deletedWumpusPredictions(Old_Deleted_Wumpus_Pred),
+
 	Knowledge = [gameStarted,
 					haveGold(NGolds),
 					myWorldSize(Max_X, Max_Y), 
@@ -303,6 +322,8 @@ back_off_from_stench_or_breeze(Action, Knowledge) :-
 					possiblePitLocation(New_Pit_Location),
 					arrows(Arrows),
 					wumpus(Wumpus),
+					deletedPitPredictions(Old_Deleted_Pit_Pred),
+					deletedWumpusPredictions(Old_Deleted_Wumpus_Pred),
 					performedAction('set_in_pos_to_shoot_1')].
 
 back_off_from_stench_or_breeze(Action, Knowledge) :-
@@ -341,6 +362,9 @@ back_off_from_stench_or_breeze(Action, Knowledge) :-
 	arrows(Arrows), Arrows > 0,
 	wumpus(Wumpus), Wumpus > 0,
 
+	deletedPitPredictions(Old_Deleted_Pit_Pred),
+	deletedWumpusPredictions(Old_Deleted_Wumpus_Pred),
+
 	Knowledge = [gameStarted,
 					haveGold(NGolds),
 					myWorldSize(Max_X, Max_Y), 
@@ -353,6 +377,8 @@ back_off_from_stench_or_breeze(Action, Knowledge) :-
 					possiblePitLocation(New_Pit_Location),
 					arrows(Arrows),
 					wumpus(Wumpus),
+					deletedPitPredictions(Old_Deleted_Pit_Pred),
+					deletedWumpusPredictions(Old_Deleted_Wumpus_Pred),
 					performedAction('set_in_pos_to_shoot_2')].
 
 /**
@@ -397,6 +423,9 @@ back_off_from_stench_or_breeze(Action, Knowledge) :-
 	arrows(Arrows),
 	wumpus(Wumpus),
 
+	deletedPitPredictions(Old_Deleted_Pit_Pred),
+	deletedWumpusPredictions(Old_Deleted_Wumpus_Pred),
+
 	Knowledge = [gameStarted,
 				 haveGold(NGolds),
 				 myWorldSize(Max_X, Max_Y), 
@@ -409,6 +438,8 @@ back_off_from_stench_or_breeze(Action, Knowledge) :-
 				 possiblePitLocation(New_Pit_Location),
 				 arrows(Arrows),
 				 wumpus(Wumpus),
+				 deletedPitPredictions(Old_Deleted_Pit_Pred),
+				 deletedWumpusPredictions(Old_Deleted_Wumpus_Pred),
 				 performedAction('back_off_from_stench_or_breeze_1/3'),
 				 predicateStep(1)].
 
@@ -448,6 +479,9 @@ back_off_from_stench_or_breeze(Action, Knowledge) :-
 	arrows(Arrows),
 	wumpus(Wumpus),
 
+	deletedPitPredictions(Old_Deleted_Pit_Pred),
+	deletedWumpusPredictions(Old_Deleted_Wumpus_Pred),
+
 	Knowledge = [gameStarted,
 	   			 haveGold(NGolds),
 				 myWorldSize(Max_X, Max_Y), 
@@ -460,6 +494,8 @@ back_off_from_stench_or_breeze(Action, Knowledge) :-
 				 possiblePitLocation(New_Pit_Location),
 				 arrows(Arrows),
 				 wumpus(Wumpus),
+				 deletedPitPredictions(Old_Deleted_Pit_Pred),
+				 deletedWumpusPredictions(Old_Deleted_Wumpus_Pred),
 				 performedAction('back_off_from_stench_or_breeze_2/3'),
 				 predicateStep(2)].
 		
@@ -497,6 +533,9 @@ back_off_from_stench_or_breeze(Action, Knowledge) :-
 	arrows(Arrows),
 	wumpus(Wumpus),
 
+	deletedPitPredictions(Old_Deleted_Pit_Pred),
+	deletedWumpusPredictions(Old_Deleted_Wumpus_Pred),
+
 	Knowledge = [gameStarted,
 				 haveGold(NGolds),
 				 myWorldSize(Max_X, Max_Y), 
@@ -509,6 +548,8 @@ back_off_from_stench_or_breeze(Action, Knowledge) :-
 				 possiblePitLocation(New_Pit_Location),
 				 arrows(Arrows),
 				 wumpus(Wumpus),
+				 deletedPitPredictions(Old_Deleted_Pit_Pred),
+				 deletedWumpusPredictions(Old_Deleted_Wumpus_Pred),
 				 performedAction('back_off_from_stench_or_breeze_3/3')].
 
 turn_if_wall(Action, Knowledge) :-
@@ -536,6 +577,9 @@ turn_if_wall(Action, Knowledge) :-
 	arrows(Arrows),
 	wumpus(Wumpus),
 
+	deletedPitPredictions(Old_Deleted_Pit_Pred),
+	deletedWumpusPredictions(Old_Deleted_Wumpus_Pred),
+
 	Knowledge = [gameStarted,
 				 haveGold(NGolds),
 				 myWorldSize(Max_X, Max_Y),
@@ -548,6 +592,8 @@ turn_if_wall(Action, Knowledge) :-
 				 possiblePitLocation(Old_Pit_Location),
 				 arrows(Arrows),
 				 wumpus(Wumpus),
+				 deletedPitPredictions(Old_Deleted_Pit_Pred),
+				 deletedWumpusPredictions(Old_Deleted_Wumpus_Pred),
 				 performedAction('turn_if_wall')].
 
 else_move_on(Action, Knowledge) :-
@@ -573,13 +619,19 @@ else_move_on(Action, Knowledge) :-
 
 	possiblePitLocation(Old_Pit_Location),
 
-	validatePrediction(Old_Wumpus_Location, Old_Stenches, New_Location, New_Wumpus_Location),
-	validatePrediction(Old_Pit_Location, Old_Breeze, New_Location, New_Pit_Location),
+	validatePrediction(Old_Wumpus_Location, Old_Stenches, New_Location, New_Wumpus_Location, Deleted_W),
+	validatePrediction(Old_Pit_Location, Old_Breeze, New_Location, New_Pit_Location, Deleted_P),
 
 	not(notDangerous(X, Y, Orient, New_Wumpus_Location, New_Pit_Location)),
 
 	arrows(Arrows),
 	wumpus(Wumpus),
+
+	deletedWumpusPredictions(Old_Deleted_Wumpus_Pred),
+	addDeletedPred(Deleted_W, Old_Deleted_Wumpus_Pred, New_Deleted_Wumpus_Pred),
+
+	deletedPitPredictions(Old_Deleted_Pit_Pred),
+	addDeletedPred(Deleted_P, Old_Deleted_Pit_Pred, New_Deleted_Pit_Pred), 
 
 	Knowledge = [gameStarted,
 				 haveGold(NGolds),
@@ -593,6 +645,8 @@ else_move_on(Action, Knowledge) :-
 				 possiblePitLocation(New_Pit_Location),
 				 arrows(Arrows),
 				 wumpus(Wumpus),
+				 deletedPitPredictions(New_Deleted_Pit_Pred),
+				 deletedWumpusPredictions(New_Deleted_Wumpus_Pred),
 				 performedAction('else_move_on')].
 
 turn_left(Action, Knowledge) :-
@@ -619,6 +673,9 @@ turn_left(Action, Knowledge) :-
 	arrows(Arrows),
 	wumpus(Wumpus),
 
+	deletedPitPredictions(Old_Deleted_Pit_Pred),
+	deletedWumpusPredictions(Old_Deleted_Wumpus_Pred),
+
 	Knowledge = [gameStarted,
 				 haveGold(NGolds),
 				 myWorldSize(Max_X, Max_Y),
@@ -631,6 +688,8 @@ turn_left(Action, Knowledge) :-
 				 possiblePitLocation(Old_Pit_Location),
 				 arrows(Arrows),
 				 wumpus(Wumpus),
+				 deletedPitPredictions(Old_Deleted_Pit_Pred),
+				 deletedWumpusPredictions(Old_Deleted_Wumpus_Pred),
 				 performedAction('turn_left')].
 				
 againstWall(X, Y, Orient, Max_X, Max_Y) :- X = Max_X, Y = Y, Orient = east.
@@ -654,6 +713,7 @@ forwardStep(X, Y, north, X, New_Y) :- New_Y is (Y+1).
 addStench(X, Y, Old_Stenches, New_Stenches) :- ((stench, \+ member([X, Y], Old_Stenches))) -> New_Stenches = [[X, Y] | Old_Stenches]; New_Stenches = Old_Stenches.
 addBreeze(X, Y, Old_Breeze, New_Breeze) :- ((breeze, \+ member([X, Y], Old_Breeze))) -> New_Breeze = [[X, Y] | Old_Breeze]; New_Breeze = Old_Breeze.
 addLocation(X, Y, Old_Location, New_Location) :- not((member([X, Y], Old_Location))) -> New_Location = [[X, Y] | Old_Location]; New_Location = Old_Location.
+addDeletedPred(Deleted, Old_Pred, New_Pred) :- append(Deleted, Old_Pred, New_Pred).
 
 alreadyVisited(X, Y, Orient, VisitedLocation) :- forwardStep(X, Y, Orient, Next_X, Next_Y), member([Next_X, Next_Y], VisitedLocation).
 notDangerous(X, Y, Orient, Wumpus, Pit) :- forwardStep(X, Y, Orient, Next_X, Next_Y), ((member([Next_X, Next_Y], Wumpus));(member([Next_X, Next_Y], Pit))).
@@ -665,14 +725,16 @@ addPossibleWumpus(New_Stenches, New_Wumpus_Location) :-
 
 addPossiblePit(New_Breeze, New_Pit_Location) :- 
 
-	calculatePossibleDangerLocation(New_Breeze, New_Pit_Location).
+	deletedPitPredictions(Old_Deleted_Pit_Pred),
+	calculatePossibleDangerLocation(New_Breeze, Tmp),
+	removeCommonElements(Tmp,Old_Deleted_Pit_Pred, New_Pit_Location).
 
-validatePrediction(Old_Wumpus_Pit_Location, Old_Breeze_Stenches, Visited_Location, New_Wumpus_Pit_Location) :-
+validatePrediction(Old_Wumpus_Pit_Location, Old_Breeze_Stenches, Visited_Location, New_Wumpus_Pit_Location, Deleted_Res) :-
 
 	firstElement(Visited_Location, Tmp1), [Xtmp, Ytmp] = Tmp1,
 	((Xtmp = 1, Ytmp = 1)-> true, Tmp2 = []; calculatePossibleDangerLocation([Tmp1], Tmp2)),
-	findall(Element, (member(Element, Tmp2), member(Element, Old_Wumpus_Pit_Location)),  Tmp3),
-	(isEmpty(Tmp3) ->true, New_Wumpus_Pit_Location = Old_Wumpus_Pit_Location; member(Tmp1, Old_Breeze_Stenches) -> true, New_Wumpus_Pit_Location = Old_Wumpus_Pit_Location ; removeCommonElements(Old_Wumpus_Pit_Location, Tmp3,New_Wumpus_Pit_Location)).
+	findall(Element, (member(Element, Tmp2), member(Element, Old_Wumpus_Pit_Location)),  Deleted),
+	(isEmpty(Deleted) ->true, New_Wumpus_Pit_Location = Old_Wumpus_Pit_Location; member(Tmp1, Old_Breeze_Stenches) -> true, New_Wumpus_Pit_Location = Old_Wumpus_Pit_Location ; removeCommonElements(Old_Wumpus_Pit_Location, Deleted ,New_Wumpus_Pit_Location), Deleted_Res = Deleted).
 
 calculatePossibleDangerLocation([], []).
 calculatePossibleDangerLocation([[X,Y]|Rest], Result) :-
