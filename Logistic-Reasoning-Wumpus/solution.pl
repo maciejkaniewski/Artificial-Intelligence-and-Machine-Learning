@@ -162,6 +162,8 @@ pick_up_gold(Action, Knowledge) :-
 
 wumpus_scream(Action, Knowledge) :-
 
+	not(predicateStepS(Step)),
+
 	stench,
 	scream,
 
@@ -209,7 +211,59 @@ wumpus_scream(Action, Knowledge) :-
 					wumpus(0),
 					deletedPitPredictions(Old_Deleted_Pit_Pred),
 					deletedWumpusPredictions(Old_Deleted_Wumpus_Pred),
-					performedAction('wumpus_scream')].
+					performedAction('wumpus_scream_1'),
+					predicateStepS(1)].
+
+wumpus_scream(Action, Knowledge) :-
+
+	breeze,
+	predicateStepS(Step), Step == 1,
+
+	haveGold(NGolds),
+
+	myPosition(X, Y, Orient),
+	myWorldSize(Max_X,Max_Y),
+	myTrail(Trail),
+	New_Trail = [ [Action,X,Y,Orient] | Trail ],
+
+	Action = turnRight, shiftOrientRight(Orient, New_Orient),
+	
+	visitedLocation(Old_Location),
+	addLocation(X,Y, Old_Location, New_Location),
+
+	stenchesLocation(Old_Stenches),
+	addStench(X,Y,Old_Stenches, New_Stenches),
+
+	possibleWumpusLocation(Old_Wumpus_Location),
+	addPossibleWumpus(New_Stenches, New_Wumpus_Location),
+
+	breezeLocation(Old_Breeze),
+	addBreeze(X,Y,Old_Breeze, New_Breeze),
+
+	possiblePitLocation(Old_Pit_Location),
+	addPossiblePit(New_Breeze, New_Pit_Location),
+
+	arrows(Arrows), Arrows = 0,
+	wumpus(Wumpus), Wumpus = 0,
+
+	deletedPitPredictions(Old_Deleted_Pit_Pred),
+	deletedWumpusPredictions(Old_Deleted_Wumpus_Pred),
+
+	Knowledge = [gameStarted,
+					haveGold(NGolds),
+					myWorldSize(Max_X, Max_Y), 
+					myPosition(X, Y, New_Orient), 
+					myTrail(New_Trail),
+					visitedLocation(New_Location),
+					stenchesLocation(New_Stenches),
+					possibleWumpusLocation([]),
+					breezeLocation(New_Breeze),
+					possiblePitLocation(New_Pit_Location),
+					arrows(Arrows),
+					wumpus(0),
+					deletedPitPredictions(Old_Deleted_Pit_Pred),
+					deletedWumpusPredictions(Old_Deleted_Wumpus_Pred),
+					performedAction('wumpus_scream_2')].
 				
 
 shoot_wumpus(Action, Knowledge) :-
@@ -297,7 +351,7 @@ back_off_from_stench_or_breeze(Action, Knowledge) :-
 
 	length(New_Wumpus_Location, 1), % If there is only one possible location
 	[[X_Wumpus, Y_Wumpus]] = New_Wumpus_Location, % Extract coordinates
-	abs(X_Wumpus - X) =:= 1, % If distance is 1 to wumpus
+	abs(X_Wumpus - X) =:= 1, abs(Y_Wumpus - Y) =:= 0, % If distance is 1 to wumpus
 	(((X_Wumpus - X )=:= 1) -> Action = turnRight, shiftOrientRight(Orient, NewOrient) ; Action = turnLeft,shiftOrient(Orient, NewOrient)),
 	New_Trail = [ [Action,X,Y,Orient] | Trail ],
 
@@ -351,7 +405,7 @@ back_off_from_stench_or_breeze(Action, Knowledge) :-
 
 	length(New_Wumpus_Location, 1), % If there is only one possible location
 	[[X_Wumpus, Y_Wumpus]] = New_Wumpus_Location, % Extract coordinates
-	abs(Y_Wumpus - Y) =:= 1, % If distance is 1 to wumpus
+	abs(Y_Wumpus - Y) =:= 1, abs(X_Wumpus - X) =:= 0,% If distance is 1 to wumpus
 	(((Y_Wumpus - Y)=:= 1) -> Action = turnRight, shiftOrientRight(Orient, NewOrient) ; Action = turnLeft,shiftOrient(Orient, NewOrient)),
 
 	New_Trail = [ [Action,X,Y,Orient] | Trail ],
@@ -582,8 +636,14 @@ turn_if_wall(Action, Knowledge) :-
 	arrows(Arrows),
 	wumpus(Wumpus),
 
-	deletedPitPredictions(Old_Deleted_Pit_Pred),
+	validatePrediction(Old_Wumpus_Location, Old_Stenches, New_Location, New_Wumpus_Location, Deleted_W),
+	validatePrediction(Old_Pit_Location, Old_Breeze, New_Location, New_Pit_Location, Deleted_P),
+
 	deletedWumpusPredictions(Old_Deleted_Wumpus_Pred),
+	addDeletedPred(Deleted_W, Old_Deleted_Wumpus_Pred, New_Deleted_Wumpus_Pred),
+
+	deletedPitPredictions(Old_Deleted_Pit_Pred),
+	addDeletedPred(Deleted_P, Old_Deleted_Pit_Pred, New_Deleted_Pit_Pred), 
 
 	Knowledge = [gameStarted,
 				 haveGold(NGolds),
@@ -678,8 +738,14 @@ turn_left(Action, Knowledge) :-
 	arrows(Arrows),
 	wumpus(Wumpus),
 
-	deletedPitPredictions(Old_Deleted_Pit_Pred),
+	validatePrediction(Old_Wumpus_Location, Old_Stenches, New_Location, New_Wumpus_Location, Deleted_W),
+	validatePrediction(Old_Pit_Location, Old_Breeze, New_Location, New_Pit_Location, Deleted_P),
+
 	deletedWumpusPredictions(Old_Deleted_Wumpus_Pred),
+	addDeletedPred(Deleted_W, Old_Deleted_Wumpus_Pred, New_Deleted_Wumpus_Pred),
+
+	deletedPitPredictions(Old_Deleted_Pit_Pred),
+	addDeletedPred(Deleted_P, Old_Deleted_Pit_Pred, New_Deleted_Pit_Pred), 
 
 	Knowledge = [gameStarted,
 				 haveGold(NGolds),
@@ -709,6 +775,8 @@ shiftOrient(south, east).
 
 shiftOrientRight(north, east).
 shiftOrientRight(west, north).
+shiftOrientRight(south, west).
+shiftOrientRight(east, south).
 
 forwardStep(X, Y, east,  New_X, Y) :- New_X is (X+1).
 forwardStep(X, Y, south, X, New_Y) :- New_Y is (Y-1).
