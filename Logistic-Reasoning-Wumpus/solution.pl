@@ -57,8 +57,6 @@ act(Action, Knowledge) :- shoot_wumpus(Action, Knowledge). % if wumpus found sho
 act(Action, Knowledge) :- back_off_from_stench_or_breeze(Action, Knowledge). % if stench/breeze take step back
 act(Action, Knowledge) :- turn_if_wall(Action, Knowledge). % if against the wall
 act(Action, Knowledge) :- else_move_on(Action, Knowledge). % if location not visited move forward
-act(Action, Knowledge) :- turn_left(Action, Knowledge). % otherwise turn left to point to another direction
-
 
 /**
  * Agent finishes the game if:
@@ -609,15 +607,125 @@ back_off_from_stench_or_breeze(Action, Knowledge) :-
 				 wumpus(Wumpus),
 				 deletedPitPredictions(Old_Deleted_Pit_Pred),
 				 deletedWumpusPredictions(Old_Deleted_Wumpus_Pred),
-				 performedAction('back_off_from_stench_or_breeze_3/3')].
+				 performedAction('back_off_from_stench_or_breeze_3/3'),
+				 predicateStep(3)].
+
+back_off_from_stench_or_breeze(Action, Knowledge) :-
+
+	wumpus(Wumpus),
+	predicateStep(Step), Step == 3,
+
+	haveGold(NGolds),
+
+	myPosition(X, Y, Orient),
+	myWorldSize(Max_X,Max_Y),
+	myTrail(Trail),
+
+	arrows(Arrows),
+	wumpus(Wumpus),
+
+	visitedLocation(Old_Location),
+	addLocation(X,Y, Old_Location, New_Location),
+
+	stenchesLocation(Old_Stenches),
+	possibleWumpusLocation(Old_Wumpus_Location),
+
+	breezeLocation(Old_Breeze),
+	possiblePitLocation(Old_Pit_Location),
+
+	deletedPitPredictions(Old_Deleted_Pit_Pred),
+	deletedWumpusPredictions(Old_Deleted_Wumpus_Pred),
+
+	shiftOrient(Orient, OLeft),
+	shiftOrientRight(Orient, ORight),
+
+	((againstWall(X, Y, ORight, Max_X, Max_Y), isDangerous(X, Y, OLeft, Old_Stenches, Old_Breeze));
+
+	(againstWall(X, Y, OLeft, Max_X, Max_Y), isDangerous(X, Y, ORight, Old_Stenches, Old_Breeze))),
+
+	not(againstWall(X, Y, Orient, Max_X, Max_Y)),
+	Action = moveForward,
+	forwardStep(X, Y, Orient, New_X, New_Y),
+	New_Trail = [ [Action,X,Y,Orient] | Trail ],
+
+	Knowledge = [gameStarted,
+					haveGold(NGolds),
+					myWorldSize(Max_X, Max_Y), 
+					myPosition(New_X, New_Y, Orient), 
+					myTrail(New_Trail),
+					visitedLocation(New_Location),
+					stenchesLocation(Old_Stenches),
+					possibleWumpusLocation(Old_Wumpus_Location),
+					breezeLocation(Old_Breeze),
+					possiblePitLocation(Old_Pit_Location),
+					arrows(Arrows),
+					wumpus(Wumpus),
+					deletedPitPredictions(Old_Deleted_Pit_Pred),
+					deletedWumpusPredictions(Old_Deleted_Wumpus_Pred),
+					performedAction('back_off_from_stench_or_breeze_4/3'),
+					predicateStep(4)].
+
+back_off_from_stench_or_breeze(Action, Knowledge) :-
+
+	wumpus(Wumpus),
+	predicateStep(Step), Step == 3,
+
+	haveGold(NGolds),
+
+	myPosition(X, Y, Orient),
+	myWorldSize(Max_X,Max_Y),
+	myTrail(Trail),
+
+	arrows(Arrows),
+	wumpus(Wumpus),
+
+	visitedLocation(Old_Location),
+
+	stenchesLocation(Old_Stenches),
+	possibleWumpusLocation(Old_Wumpus_Location),
+
+	breezeLocation(Old_Breeze),
+	possiblePitLocation(Old_Pit_Location),
+
+	deletedPitPredictions(Old_Deleted_Pit_Pred),
+	deletedWumpusPredictions(Old_Deleted_Wumpus_Pred),
+
+	shiftOrient(Orient, OLeft),
+	shiftOrientRight(Orient, ORight),
+
+	((not(againstWall(X, Y, ORight, Max_X, Max_Y)), not(isDangerous(X, Y, ORight, Old_Stenches, Old_Breeze))) -> (Action = turnRight,New_Orient = ORight) ; 
+	(not(againstWall(X, Y, OLeft, Max_X, Max_Y)), not(isDangerous(X, Y, OLeft, Old_Stenches, Old_Breeze))) -> (Action = turnLeft , New_Orient = OLeft) ; false),
+	
+	New_Trail = [ [Action,X,Y,Orient] | Trail ],
+
+	Knowledge = [gameStarted,
+					haveGold(NGolds),
+					myWorldSize(Max_X, Max_Y), 
+					myPosition(X, Y, New_Orient), 
+					myTrail(New_Trail),
+					visitedLocation(Old_Location),
+					stenchesLocation(Old_Stenches),
+					possibleWumpusLocation(Old_Wumpus_Location),
+					breezeLocation(Old_Breeze),
+					possiblePitLocation(Old_Pit_Location),
+					arrows(Arrows),
+					wumpus(Wumpus),
+					deletedPitPredictions(Old_Deleted_Pit_Pred),
+					deletedWumpusPredictions(Old_Deleted_Wumpus_Pred),
+					performedAction('back_off_from_stench_or_breeze_RL')].
+					
 
 turn_if_wall(Action, Knowledge) :-
-	
+
 	myPosition(X, Y, Orient),
 	myWorldSize(Max_X,Max_Y),
 	againstWall(X, Y, Orient, Max_X, Max_Y),
 	Action = turnLeft,
-	shiftOrient(Orient, NewOrient),
+	shiftOrient(Orient, New_Orient),
+	
+	shiftOrientRight(Orient, ORight),
+	againstWall(X, Y, ORight, Max_X, Max_Y),
+	
 	haveGold(NGolds),
 	myTrail(Trail),
 	New_Trail = [ [Action,X,Y,Orient] | Trail ],
@@ -646,9 +754,59 @@ turn_if_wall(Action, Knowledge) :-
 	addDeletedPred(Deleted_P, Old_Deleted_Pit_Pred, New_Deleted_Pit_Pred), 
 
 	Knowledge = [gameStarted,
+					haveGold(NGolds),
+					myWorldSize(Max_X, Max_Y),
+					myPosition(X, Y, New_Orient),
+					myTrail(New_Trail),
+					visitedLocation(New_Location),
+					stenchesLocation(Old_Stenches),
+					possibleWumpusLocation(Old_Wumpus_Location),
+					breezeLocation(Old_Breeze),
+					possiblePitLocation(Old_Pit_Location),
+					arrows(Arrows),
+					wumpus(Wumpus),
+					deletedPitPredictions(Old_Deleted_Pit_Pred),
+					deletedWumpusPredictions(Old_Deleted_Wumpus_Pred),
+									 performedAction('turn_if_wall_FR')].
+
+turn_if_wall(Action, Knowledge) :-
+	
+	myPosition(X, Y, Orient),
+	myWorldSize(Max_X,Max_Y),
+	againstWall(X, Y, Orient, Max_X, Max_Y),
+	Action = turnRight,
+	shiftOrientRight(Orient, New_Orient),
+	haveGold(NGolds),
+	myTrail(Trail),
+	((X = 1, Y = 1)-> New_Trail = [] ; New_Trail = [ [Action,X,Y,Orient] | Trail ]),
+
+	visitedLocation(Old_Location),
+	addLocation(X,Y, Old_Location, New_Location),
+
+	stenchesLocation(Old_Stenches),
+
+	possibleWumpusLocation(Old_Wumpus_Location),
+
+	breezeLocation(Old_Breeze),
+
+	possiblePitLocation(Old_Pit_Location),
+
+	arrows(Arrows),
+	wumpus(Wumpus),
+
+	validatePrediction(Old_Wumpus_Location, Old_Stenches, New_Location, New_Wumpus_Location, Deleted_W),
+	validatePrediction(Old_Pit_Location, Old_Breeze, New_Location, New_Pit_Location, Deleted_P),
+
+	deletedWumpusPredictions(Old_Deleted_Wumpus_Pred),
+	addDeletedPred(Deleted_W, Old_Deleted_Wumpus_Pred, New_Deleted_Wumpus_Pred),
+
+	deletedPitPredictions(Old_Deleted_Pit_Pred),
+	addDeletedPred(Deleted_P, Old_Deleted_Pit_Pred, New_Deleted_Pit_Pred), 
+
+	Knowledge = [gameStarted,
 				 haveGold(NGolds),
 				 myWorldSize(Max_X, Max_Y),
-				 myPosition(X, Y, NewOrient),
+				 myPosition(X, Y, New_Orient),
 				 myTrail(New_Trail),
 				 visitedLocation(New_Location),
 				 stenchesLocation(Old_Stenches),
@@ -672,7 +830,7 @@ else_move_on(Action, Knowledge) :-
 	New_Trail = [ [Action,X,Y,Orient] | Trail ],
 
 	visitedLocation(Old_Location),
-	not(alreadyVisited(X, Y, Orient, Old_Location)),
+	%not(alreadyVisited(X, Y, Orient, Old_Location)),
 
 	addLocation(X,Y, Old_Location, New_Location),
 
@@ -687,7 +845,7 @@ else_move_on(Action, Knowledge) :-
 	validatePrediction(Old_Wumpus_Location, Old_Stenches, New_Location, New_Wumpus_Location, Deleted_W),
 	validatePrediction(Old_Pit_Location, Old_Breeze, New_Location, New_Pit_Location, Deleted_P),
 
-	not(notDangerous(X, Y, Orient, New_Wumpus_Location, New_Pit_Location)),
+	%not(notDangerous(X, Y, Orient, New_Wumpus_Location, New_Pit_Location)),
 
 	arrows(Arrows),
 	wumpus(Wumpus),
@@ -789,7 +947,7 @@ addLocation(X, Y, Old_Location, New_Location) :- not((member([X, Y], Old_Locatio
 addDeletedPred(Deleted, Old_Pred, New_Pred) :- append(Deleted, Old_Pred, New_Pred).
 
 alreadyVisited(X, Y, Orient, VisitedLocation) :- forwardStep(X, Y, Orient, Next_X, Next_Y), member([Next_X, Next_Y], VisitedLocation).
-notDangerous(X, Y, Orient, Wumpus, Pit) :- forwardStep(X, Y, Orient, Next_X, Next_Y), ((member([Next_X, Next_Y], Wumpus));(member([Next_X, Next_Y], Pit))).
+isDangerous(X, Y, Orient, Wumpus, Pit) :- forwardStep(X, Y, Orient, Next_X, Next_Y), ((member([Next_X, Next_Y], Wumpus));(member([Next_X, Next_Y], Pit))).
 
 addPossibleWumpus(New_Stenches, New_Wumpus_Location) :- 
 	
