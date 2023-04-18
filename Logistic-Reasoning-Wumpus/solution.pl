@@ -33,17 +33,20 @@
 	assert(deletedWumpusPredictions([])),
 	assert(loopCounter(0)),
 	assert(performedAction(0)),
+	assert(randomNumber(0)),
+	assert(movefCounter(0)),
+	assert(totalMoves(0)),
 	act(Action, Knowledge).
 
 act(Action, Knowledge) :- exit_if_home(Action, Knowledge). % If the agent is in the starting position and has gold or no gold after a failed search
-act(Action, Knowledge) :- return_to_home_if_gold(Action, Knowledge). % If the agent found gold, he returns to the starting position
+act(Action, Knowledge) :- return_to_home_if_gold(Action, Knowledge). % If the agent found gold or made many moves he returns to the starting position
 act(Action, Knowledge) :- pick_up_gold(Action, Knowledge). % If the agent found the gold (glitter) and picks it up
 act(Action, Knowledge) :- wumpus_scream(Action, Knowledge). % If the agent heard Wumpus scream
 act(Action, Knowledge) :- shoot_wumpus(Action, Knowledge). % If the agent is sure of the location of the Wumpus, he fires the shot
 act(Action, Knowledge) :- set_in_pos_to_shoot(Action, Knowledge). % If the agent is sure of the wumpus, he positions himself
 act(Action, Knowledge) :- back_off_from_stench_or_breeze(Action, Knowledge). % If the agent hits a stench or breeze, he retreats
-act(Action, Knowledge) :- turn_if_wall(Action, Knowledge). % If the agent hits a wall, he turns around
-act(Action, Knowledge) :- else_move_on(Action, Knowledge). % If the previous actions cannot be performed, the agent moves forward
+act(Action, Knowledge) :- turn_if_wall(Action, Knowledge). % If the agent hits a wall, he turns around (random)
+act(Action, Knowledge) :- else_move_on(Action, Knowledge). % If the previous actions cannot be performed, the agent moves forward, right or left (random)
 
 % The agent leaves the cave if he hasn't found gold 
 % and there is a stench or breeze in the starting position.
@@ -59,7 +62,9 @@ exit_if_home(Action, Knowledge) :-
 % and he is in the starting position.
 exit_if_home(Action, Knowledge) :-
 	
-	haveGold(NGolds), NGolds > 0,
+	haveGold(NGolds), 
+	totalMoves(Moves),
+	((NGolds > 0) ; (Moves = -1)),
 	myPosition(1, 1, Orient),
 	Action = exit,
 	Knowledge = [].
@@ -69,51 +74,73 @@ exit_if_home(Action, Knowledge) :-
 exit_if_home(Action, Knowledge) :-
 	
 	myPosition(1, 1, Orient),
+
 	visitedLocation(Old_Location),
-	loopCounter(Old_Counter), Old_Counter >= 8,
+	loopCounter(Old_Counter), Old_Counter >= 10,
 	alreadyVisited(1, 1, north, Old_Location),
 	alreadyVisited(1, 1, east, Old_Location),
 	Action = exit,
 	Knowledge = [].
 
-% If the agent found gold, he returns to the starting position.
+% If the agent found gold or made many moves he returns to the starting position.
 return_to_home_if_gold(Action, Knowledge) :-
 
-	haveGold(NGolds), NGolds > 0,
+	haveGold(NGolds), 
+	totalMoves(Moves),
+
+	myWorldSize(Max_X, Max_Y),
+
+	Limit is Max_X * 25,
+	
+	((NGolds > 0) ; (Moves >= Limit)),
+	
 	myWorldSize(Max_X, Max_Y),
 	myTrail(Trail),
-	Trail = [ [grab,X,Y,Orient] | Trail_Tail ],
+
+	((NGolds > 0) -> Trail = [ [grab,X,Y,Orient] | Trail_Tail ]; Trail_Tail = Trail, myPosition(X,Y,Orient)),
+
 	New_Trail = [ [turnRight,X,Y,Orient] | Trail_Tail ], 
 	Action = turnLeft,
 	
 	Knowledge = [gameStarted,
 	             haveGold(NGolds),
+				 totalMoves(-1),
 		         myWorldSize(Max_X, Max_Y),
 		         myPosition(X, Y, Orient),
 		         myTrail(New_Trail)].
 
 return_to_home_if_gold(Action, Knowledge) :-
 	
-	haveGold(NGolds), NGolds > 0,
+	haveGold(NGolds), 
+	totalMoves(Moves),
+	
+	((NGolds > 0) ; (Moves = -1)),
+	
 	myWorldSize(Max_X, Max_Y),
 	myTrail([ [Action,X,Y,Orient] | Trail_Tail ]),
 	Action = moveForward,
 	
 	Knowledge = [gameStarted,
 	             haveGold(NGolds),
+				 totalMoves(Moves),
 		         myWorldSize(Max_X, Max_Y),
 		         myPosition(X, Y, Orient),
 		         myTrail(Trail_Tail)].
 
 return_to_home_if_gold(Action, Knowledge) :- 
 	
-	haveGold(NGolds), NGolds > 0,
+	haveGold(NGolds), 
+	totalMoves(Moves),
+	
+	((NGolds > 0) ; (Moves = -1)),
+
 	myWorldSize(Max_X, Max_Y),
 	myTrail([ [OldAct,X,Y,Orient] | Trail_Tail ]),
 	((OldAct=turnLeft,Action=turnRight);(OldAct=turnRight,Action=turnLeft)),
 	
 	Knowledge = [gameStarted,
 	             haveGold(NGolds),
+				 totalMoves(Moves),
 		         myWorldSize(Max_X, Max_Y),
 		         myPosition(X, Y, Orient),
 		         myTrail(Trail_Tail)].
@@ -124,6 +151,7 @@ pick_up_gold(Action, Knowledge) :-
 	glitter,
 	Action = grab,	    
 	haveGold(NGolds),
+	totalMoves(Moves),
 	NewNGolds is NGolds + 1,
 	myWorldSize(Max_X, Max_Y),
 	myPosition(X, Y, Orient),
@@ -132,6 +160,7 @@ pick_up_gold(Action, Knowledge) :-
 	
 	Knowledge = [gameStarted,
 	             haveGold(NewNGolds),
+				 totalMoves(Moves),
 				 myWorldSize(Max_X, Max_Y),
 				 myPosition(X, Y, Orient),
 				 myTrail(New_Trail)].
@@ -182,6 +211,13 @@ wumpus_scream(Action, Knowledge) :-
 	loopCounter(Old_Counter),
 	isAgentOnExit(Old_Counter, New_Counter),
 
+	movefCounter(Old_FCounter),
+
+	totalMoves(Old_Total_Counter),
+	incrementTotalMoves(Old_Total_Counter, New_Total_Counter),
+
+	randomNumber(RandomIntegerMF),
+
 	Knowledge = [gameStarted,
 				 haveGold(NGolds),
 				 myWorldSize(Max_X, Max_Y), 
@@ -197,6 +233,9 @@ wumpus_scream(Action, Knowledge) :-
 				 deletedPitPredictions(Old_Deleted_Pit_Pred),
 				 deletedWumpusPredictions(Old_Deleted_Wumpus_Pred),
 				 loopCounter(New_Counter),
+				 randomNumber(RandomIntegerMF),
+				 movefCounter(0),
+				 totalMoves(New_Total_Counter),
 				 performedAction('wumpus_scream_breeze')].
 
 wumpus_scream(Action, Knowledge) :-
@@ -239,6 +278,13 @@ wumpus_scream(Action, Knowledge) :-
 	loopCounter(Old_Counter),
 	isAgentOnExit(Old_Counter, New_Counter),
 
+	movefCounter(Old_FCounter),
+
+	totalMoves(Old_Total_Counter),
+	incrementTotalMoves(Old_Total_Counter, New_Total_Counter),
+
+	randomNumber(RandomIntegerMF),
+
 	Knowledge = [gameStarted,
 				 haveGold(NGolds),
 				 myWorldSize(Max_X, Max_Y), 
@@ -254,6 +300,9 @@ wumpus_scream(Action, Knowledge) :-
 				 deletedPitPredictions(Old_Deleted_Pit_Pred),
 				 deletedWumpusPredictions(Old_Deleted_Wumpus_Pred),
 				 loopCounter(New_Counter),
+				 randomNumber(RandomIntegerMF),
+				 movefCounter(0),
+				 totalMoves(New_Total_Counter),
 				 performedAction('wumpus_scream')].
 
 % The agent checks whether he is in a position 
@@ -304,6 +353,13 @@ shoot_wumpus(Action, Knowledge) :-
 	loopCounter(Old_Counter),
 	isAgentOnExit(Old_Counter, New_Counter),
 
+	movefCounter(Old_FCounter),
+
+	totalMoves(Old_Total_Counter),
+	incrementTotalMoves(Old_Total_Counter, New_Total_Counter),
+
+	randomNumber(RandomIntegerMF),
+
 	Knowledge = [gameStarted,
 				 haveGold(NGolds),
 				 myWorldSize(Max_X, Max_Y), 
@@ -319,6 +375,9 @@ shoot_wumpus(Action, Knowledge) :-
 				 deletedPitPredictions(New_Deleted_Pit_Pred),
 				 deletedWumpusPredictions(New_Deleted_Wumpus_Pred),
 				 loopCounter(New_Counter),
+				 randomNumber(RandomIntegerMF),
+				 movefCounter(0),
+				 totalMoves(New_Total_Counter),
 				 performedAction('shoot_wumpus')].
 
 % The agent positions himself so that he is facing the wumpus. 
@@ -366,6 +425,13 @@ set_in_pos_to_shoot(Action, Knowledge) :-
 	loopCounter(Old_Counter),
 	isAgentOnExit(Old_Counter, New_Counter),
 
+	movefCounter(Old_FCounter),
+
+	totalMoves(Old_Total_Counter),
+	incrementTotalMoves(Old_Total_Counter, New_Total_Counter),
+
+	randomNumber(RandomIntegerMF),
+
 	Knowledge = [gameStarted,
 				 haveGold(NGolds),
 				 myWorldSize(Max_X, Max_Y), 
@@ -381,6 +447,9 @@ set_in_pos_to_shoot(Action, Knowledge) :-
 				 deletedPitPredictions(Old_Deleted_Pit_Pred),
 				 deletedWumpusPredictions(Old_Deleted_Wumpus_Pred),
 				 loopCounter(New_Counter),
+				 randomNumber(RandomIntegerMF),
+				 movefCounter(0),
+				 totalMoves(New_Total_Counter),
 				 performedAction('set_in_pos_to_shoot_WY')].
 
 set_in_pos_to_shoot(Action, Knowledge) :-
@@ -425,6 +494,13 @@ set_in_pos_to_shoot(Action, Knowledge) :-
 	loopCounter(Old_Counter),
 	isAgentOnExit(Old_Counter, New_Counter),
 
+	movefCounter(Old_FCounter),
+
+	totalMoves(Old_Total_Counter),
+	incrementTotalMoves(Old_Total_Counter, New_Total_Counter),
+
+	randomNumber(RandomIntegerMF),
+
 	Knowledge = [gameStarted,
 				 haveGold(NGolds),
 				 myWorldSize(Max_X, Max_Y), 
@@ -440,6 +516,9 @@ set_in_pos_to_shoot(Action, Knowledge) :-
 				 deletedPitPredictions(Old_Deleted_Pit_Pred),
 				 deletedWumpusPredictions(Old_Deleted_Wumpus_Pred),
 				 loopCounter(New_Counter),
+				 randomNumber(RandomIntegerMF),
+				 movefCounter(0),
+				 totalMoves(New_Total_Counter),
 				 performedAction('set_in_pos_to_shoot_EY')].
 
 set_in_pos_to_shoot(Action, Knowledge) :-
@@ -485,6 +564,13 @@ set_in_pos_to_shoot(Action, Knowledge) :-
 	loopCounter(Old_Counter),
 	isAgentOnExit(Old_Counter, New_Counter),
 
+	movefCounter(Old_FCounter),
+
+	totalMoves(Old_Total_Counter),
+	incrementTotalMoves(Old_Total_Counter, New_Total_Counter),
+
+	randomNumber(RandomIntegerMF),
+
 	Knowledge = [gameStarted,
 				 haveGold(NGolds),
 				 myWorldSize(Max_X, Max_Y), 
@@ -500,6 +586,9 @@ set_in_pos_to_shoot(Action, Knowledge) :-
 				 deletedPitPredictions(Old_Deleted_Pit_Pred),
 				 deletedWumpusPredictions(Old_Deleted_Wumpus_Pred),
 				 loopCounter(New_Counter),
+				 randomNumber(RandomIntegerMF),
+				 movefCounter(0),
+				 totalMoves(New_Total_Counter),
 				 performedAction('set_in_pos_to_shoot_NX')].
 
 set_in_pos_to_shoot(Action, Knowledge) :-
@@ -546,6 +635,13 @@ set_in_pos_to_shoot(Action, Knowledge) :-
 	loopCounter(Old_Counter),
 	isAgentOnExit(Old_Counter, New_Counter),
 
+	movefCounter(Old_FCounter),
+
+	totalMoves(Old_Total_Counter),
+	incrementTotalMoves(Old_Total_Counter, New_Total_Counter),
+
+	randomNumber(RandomIntegerMF),
+
 	Knowledge = [gameStarted,
 				 haveGold(NGolds),
 				 myWorldSize(Max_X, Max_Y), 
@@ -561,6 +657,9 @@ set_in_pos_to_shoot(Action, Knowledge) :-
 				 deletedPitPredictions(Old_Deleted_Pit_Pred),
 				 deletedWumpusPredictions(Old_Deleted_Wumpus_Pred),
 				 loopCounter(New_Counter),
+				 randomNumber(RandomIntegerMF),
+				 movefCounter(0),
+				 totalMoves(New_Total_Counter),
 				 performedAction('set_in_pos_to_shoot_SX')].
 				
 
@@ -613,6 +712,13 @@ back_off_from_stench_or_breeze(Action, Knowledge) :-
 	loopCounter(Old_Counter),
 	isAgentOnExit(Old_Counter, New_Counter),
 
+	movefCounter(Old_FCounter),
+
+	totalMoves(Old_Total_Counter),
+	incrementTotalMoves(Old_Total_Counter, New_Total_Counter),
+
+	randomNumber(RandomIntegerMF),
+
 	Knowledge = [gameStarted,
 				 haveGold(NGolds),
 				 myWorldSize(Max_X, Max_Y), 
@@ -628,6 +734,9 @@ back_off_from_stench_or_breeze(Action, Knowledge) :-
 				 deletedPitPredictions(New_Deleted_Pit_Pred),
 				 deletedWumpusPredictions(New_Deleted_Wumpus_Pred),
 				 loopCounter(New_Counter),
+				 randomNumber(RandomIntegerMF),
+				 movefCounter(0),
+				 totalMoves(New_Total_Counter),
 				 performedAction('back_off_from_stench_or_breeze_1/3'),
 				 predicateStep(1)].
 
@@ -671,6 +780,13 @@ back_off_from_stench_or_breeze(Action, Knowledge) :-
 	loopCounter(Old_Counter),
 	isAgentOnExit(Old_Counter, New_Counter),
 
+	movefCounter(Old_FCounter),
+
+	totalMoves(Old_Total_Counter),
+	incrementTotalMoves(Old_Total_Counter, New_Total_Counter),
+
+	randomNumber(RandomIntegerMF),
+
 	Knowledge = [gameStarted,
 	   			 haveGold(NGolds),
 				 myWorldSize(Max_X, Max_Y), 
@@ -686,6 +802,9 @@ back_off_from_stench_or_breeze(Action, Knowledge) :-
 				 deletedPitPredictions(Old_Deleted_Pit_Pred),
 				 deletedWumpusPredictions(Old_Deleted_Wumpus_Pred),
 				 loopCounter(New_Counter),
+				 randomNumber(RandomIntegerMF),
+				 movefCounter(0),
+				 totalMoves(New_Total_Counter),
 				 performedAction('back_off_from_stench_or_breeze_2/3'),
 				 predicateStep(2)].
 		
@@ -728,6 +847,13 @@ back_off_from_stench_or_breeze(Action, Knowledge) :-
 	loopCounter(Old_Counter),
 	isAgentOnExit(Old_Counter, New_Counter),
 
+	movefCounter(Old_FCounter),
+
+	totalMoves(Old_Total_Counter),
+	incrementTotalMoves(Old_Total_Counter, New_Total_Counter),
+
+	randomNumber(RandomIntegerMF),
+
 	Knowledge = [gameStarted,
 				 haveGold(NGolds),
 				 myWorldSize(Max_X, Max_Y), 
@@ -743,6 +869,9 @@ back_off_from_stench_or_breeze(Action, Knowledge) :-
 				 deletedPitPredictions(Old_Deleted_Pit_Pred),
 				 deletedWumpusPredictions(Old_Deleted_Wumpus_Pred),
 				 loopCounter(New_Counter),
+				 randomNumber(RandomIntegerMF),
+				 movefCounter(0),
+				 totalMoves(New_Total_Counter),
 				 performedAction('back_off_from_stench_or_breeze_3/3'),
 				 predicateStep(3)].
 
@@ -784,6 +913,13 @@ back_off_from_stench_or_breeze(Action, Knowledge) :-
 	loopCounter(Old_Counter),
 	isAgentOnExit(Old_Counter, New_Counter),
 
+	movefCounter(Old_FCounter),
+
+	totalMoves(Old_Total_Counter),
+	incrementTotalMoves(Old_Total_Counter, New_Total_Counter),
+
+	randomNumber(RandomIntegerMF),
+
 	Knowledge = [gameStarted,
 				 haveGold(NGolds),
 				 myWorldSize(Max_X, Max_Y), 
@@ -799,6 +935,9 @@ back_off_from_stench_or_breeze(Action, Knowledge) :-
 				 deletedPitPredictions(Old_Deleted_Pit_Pred),
 				 deletedWumpusPredictions(Old_Deleted_Wumpus_Pred),
 				 loopCounter(New_Counter),
+				 randomNumber(RandomIntegerMF),
+				 movefCounter(0),
+				 totalMoves(New_Total_Counter),
 				 performedAction('back_off_from_danger_righ_or_left')].
 					
 % The agent turns left when he is facing a wall and there is a wall to his right.
@@ -842,6 +981,14 @@ turn_if_wall(Action, Knowledge) :-
 	loopCounter(Old_Counter),
 	isAgentOnExit(Old_Counter, New_Counter),
 
+	movefCounter(Old_FCounter),
+	New_FCounter is Old_FCounter + 1,
+
+	totalMoves(Old_Total_Counter),
+	incrementTotalMoves(Old_Total_Counter, New_Total_Counter),
+
+	randomNumber(RandomIntegerMF),
+
 	Knowledge = [gameStarted,
 					haveGold(NGolds),
 					myWorldSize(Max_X, Max_Y),
@@ -857,6 +1004,9 @@ turn_if_wall(Action, Knowledge) :-
 					deletedPitPredictions(Old_Deleted_Pit_Pred),
 					deletedWumpusPredictions(Old_Deleted_Wumpus_Pred),
 					loopCounter(New_Counter),
+					randomNumber(RandomIntegerMF),
+					movefCounter(New_FCounter),
+					totalMoves(New_Total_Counter),
 					performedAction('turn_if_wall_front_and_right')].
 
 % The agent turns right when he is facing a wall and there is a wall to his left.
@@ -900,6 +1050,14 @@ turn_if_wall(Action, Knowledge) :-
 	loopCounter(Old_Counter),
 	isAgentOnExit(Old_Counter, New_Counter),
 
+	movefCounter(Old_FCounter),
+	New_FCounter is Old_FCounter + 1,
+
+	totalMoves(Old_Total_Counter),
+	incrementTotalMoves(Old_Total_Counter, New_Total_Counter),
+
+	randomNumber(RandomIntegerMF),
+
 	Knowledge = [gameStarted,
 				 haveGold(NGolds),
 				 myWorldSize(Max_X, Max_Y),
@@ -915,18 +1073,24 @@ turn_if_wall(Action, Knowledge) :-
 				 deletedPitPredictions(Old_Deleted_Pit_Pred),
 				 deletedWumpusPredictions(Old_Deleted_Wumpus_Pred),
 				 loopCounter(New_Counter),
+				 movefCounter(New_FCounter),
+				 randomNumber(RandomIntegerMF),
+				 totalMoves(New_Total_Counter),
 				 performedAction('turn_if_wall_front_and_left')].
 
-% The agent turns right when encountered a wall.
+% The agent turns right or left (random) when encountered a wall.
 turn_if_wall(Action, Knowledge) :-
 
 	myPosition(X, Y, Orient),
 	myWorldSize(Max_X,Max_Y),
 
-	shiftOrientRight(Orient, New_Orient),
 	againstWall(X, Y, Orient, Max_X, Max_Y),
 
-	Action = turnRight,
+	rand_int(2, RandomInteger),
+
+	((RandomInteger = 0) -> 
+	Action = turnLeft, shiftOrient(Orient, New_Orient); 
+	Action = turnRight, shiftOrientRight(Orient, New_Orient)),
 
 	haveGold(NGolds),
 	myTrail(Trail),
@@ -955,6 +1119,14 @@ turn_if_wall(Action, Knowledge) :-
 	loopCounter(Old_Counter),
 	isAgentOnExit(Old_Counter, New_Counter),
 
+	movefCounter(Old_FCounter),
+	New_FCounter is Old_FCounter + 1,
+
+	totalMoves(Old_Total_Counter),
+	incrementTotalMoves(Old_Total_Counter, New_Total_Counter),
+
+	randomNumber(RandomIntegerMF),
+
 	Knowledge = [gameStarted,
 					haveGold(NGolds),
 					myWorldSize(Max_X, Max_Y),
@@ -970,18 +1142,18 @@ turn_if_wall(Action, Knowledge) :-
 					deletedPitPredictions(Old_Deleted_Pit_Pred),
 					deletedWumpusPredictions(Old_Deleted_Wumpus_Pred),
 					loopCounter(New_Counter),
+					randomNumber(RandomIntegerMF),
+					movefCounter(New_FCounter),
+					totalMoves(New_Total_Counter),
 					performedAction('turn_if_wall')].
 
-% The agent moves forward.
+% The agent moves forward or left or right (random).
 else_move_on(Action, Knowledge) :-
 	
-	Action = moveForward,
 	haveGold(NGolds),
 	myWorldSize(Max_X,Max_Y),
 	myPosition(X, Y, Orient),
-	forwardStep(X, Y, Orient, New_X, New_Y),
-	myTrail(Trail),
-	New_Trail = [ [Action,X,Y,Orient] | Trail ],
+	
 
 	visitedLocation(Old_Location),
 
@@ -1008,12 +1180,40 @@ else_move_on(Action, Knowledge) :-
 	addDeletedPred(Deleted_P, Old_Deleted_Pit_Pred, New_Deleted_Pit_Pred),
 
 	loopCounter(Old_Counter),
-	isAgentOnExit(Old_Counter, New_Counter), 
+	isAgentOnExit(Old_Counter, New_Counter),
+
+	rand_int(2, RandomInteger),
+	
+	randomNumber(Old_RandomIntegerMF),
+
+	movefCounter(Old_FCounter),
+	((Old_FCounter = 0) -> rand_int(Max_X, New_RandomIntegerMF_), New_RandomIntegerMF is New_RandomIntegerMF_+1; New_RandomIntegerMF = Old_RandomIntegerMF),
+	New_FCounter is Old_FCounter + 1,
+
+	shiftOrient(Orient, OLeft),
+	shiftOrientRight(Orient, ORight),
+
+	((New_FCounter >= New_RandomIntegerMF) ->  % (1) if moveForward was executed Limit times
+	Tmp3 is 0, % (1 [True]) reset moveForward counter to 0
+	((RandomInteger = 0) -> % (2) if random value is 0 
+	((againstWall(X, Y, OLeft, Max_X, Max_Y)) -> % (2 [True]) -> (3) if against the wall on left
+	Action = turnRight, shiftOrientRight(Orient, New_Orient), New_X = X, New_Y = Y;  % (3 [True]) perform turnRight
+	Action = turnLeft, shiftOrient(Orient, New_Orient), New_X = X, New_Y = Y); % (3 [False]) perform turnLeft
+	((againstWall(X, Y, ORight, Max_X, Max_Y)) -> % (3 [False]) -> (4) if against the wall on right
+	Action = turnLeft, shiftOrient(Orient, New_Orient), New_X = X, New_Y = Y; % (4 [True]) perform turnLeft
+	Action = turnRight, shiftOrientRight(Orient, New_Orient), New_X = X, New_Y = Y)); % (4 [False]) perform turnRight
+	Action = moveForward, forwardStep(X,Y,Orient,New_X,New_Y), New_Orient = Orient, Tmp3 = New_FCounter), % (1 [False]) else go moveForward
+
+	myTrail(Trail),
+	New_Trail = [ [Action,X,Y,Orient] | Trail ],
+
+	totalMoves(Old_Total_Counter),
+	incrementTotalMoves(Old_Total_Counter, New_Total_Counter),
 
 	Knowledge = [gameStarted,
 				 haveGold(NGolds),
 				 myWorldSize(Max_X, Max_Y),
-				 myPosition(New_X, New_Y, Orient),
+				 myPosition(New_X, New_Y, New_Orient),
 				 myTrail(New_Trail),
 				 visitedLocation(New_Location),
 				 stenchesLocation(Old_Stenches),
@@ -1025,6 +1225,9 @@ else_move_on(Action, Knowledge) :-
 				 deletedPitPredictions(New_Deleted_Pit_Pred),
 				 deletedWumpusPredictions(New_Deleted_Wumpus_Pred),
 				 loopCounter(New_Counter),
+				 randomNumber(New_RandomIntegerMF),
+				 movefCounter(Tmp3),
+				 totalMoves(New_Total_Counter),
 				 performedAction('else_move_on')].
 
 % Checking if the agent is facing the wall
@@ -1065,6 +1268,7 @@ isDangerous(X, Y, Orient, Wumpus, Pit) :- forwardStep(X, Y, Orient, Next_X, Next
 
 % Checks if the agent is in the starting position and increments the counter
 isAgentOnExit(Old_Counter, New_Counter) :- (myPosition(1,1,Orient) -> New_Counter is Old_Counter + 1 ; New_Counter = Old_Counter).
+incrementTotalMoves(Old_Total_Counter, New_Total_Counter) :- New_Total_Counter is Old_Total_Counter +1.
 
 % Based on the collected information, the possible Wumpus positions are calculated
 addPossibleWumpus(New_Stenches, New_Wumpus_Location) :- 
