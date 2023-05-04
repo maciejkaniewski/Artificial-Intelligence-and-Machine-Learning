@@ -3,5 +3,9 @@ project(Markov-Decision-Problems)
 
 set(CMAKE_CXX_STANDARD 14)
 
-add_executable(markov-decision-problems main.cpp)
+include_directories(inc)
+
+set(SOURCES src/main.cpp src/World.cpp)
+
+add_executable(markov-decision-problems ${SOURCES})
 target_compile_options(markov-decision-problems PRIVATE -Wall -Wextra -pedantic -Werror)
