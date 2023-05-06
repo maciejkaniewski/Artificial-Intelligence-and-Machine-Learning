@@ -25,7 +25,8 @@ bool World::checkFileValidity(const std::string &file_name) const {
     } else if (c == 'P') {
       float p1, p2, p3;
       if (!(iss >> p1 >> p2 >> p3)) {
-        std::cerr << "Error: Invalid uncertainty distribution definition after P option in file " << file_name << std::endl;
+        std::cerr << "Error: Invalid uncertainty distribution definition after P option in file " << file_name
+                  << std::endl;
         return false;
       }
       has_p = true;
@@ -203,3 +204,130 @@ bool World::setGamma(float gamma) {
     return true;
   }
 };
+
+void World::displayWorld() const {
+
+  std::cout << "  +";
+  for (int i = 0; i < width_x_; ++i) {
+    if (i == 0) {
+      std::cout << "---------+";
+    } else {
+      std::cout << " +---------+";
+    }
+  }
+  std::cout << std::endl;
+
+  for (int y = height_y_; y >= 1; --y) {
+    for (int row = 0; row < 3; ++row) {
+      if (row == 1) {
+        std::cout << y << " |";
+      } else {
+        std::cout << "  |";
+      }
+      for (int x = 1; x <= width_x_; ++x) {
+        if (row == 0) {
+          // First row of the cell
+          if (x == width_x_) {
+            std::cout << "         |";
+          } else {
+            std::cout << "         | |";
+          }
+        } else if (row == 2) {
+          if (x == width_x_) {
+            std::cout << "         |";
+          } else {
+            std::cout << "         | |";
+          }
+        } else if (row == 1) {
+          bool printed = false;
+
+          for (const auto &terminal_state : terminal_states_) {
+            int term_x, term_y;
+            float term_reward;
+            std::tie(term_x, term_y, term_reward) = terminal_state;
+            if (x == term_x && y == term_y) {
+              std::cout << "    T    ";
+              printed = true;
+              break;
+            }
+          }
+
+          for (const auto &special_state : special_states_) {
+            int spec_x, spec_y;
+            float spec_reward;
+            std::tie(spec_x, spec_y, spec_reward) = special_state;
+            if (x == spec_x && y == spec_y) {
+              std::cout << "    B    ";
+              printed = true;
+              break;
+            }
+          }
+
+          for (const auto &forbidden_state : forbidden_states_) {
+            int forb_x, forb_y;
+            std::tie(forb_x, forb_y) = forbidden_state;
+            if (x == forb_x && y == forb_y) {
+              std::cout << "    F    ";
+              printed = true;
+              break;
+            }
+          }
+
+          if (x == start_x_ && y == start_y_) {
+            std::cout << "    S    ";
+            printed = true;
+          }
+
+          if (!printed) {
+            std::cout << "         ";
+          }
+          if (x == width_x_) {
+            std::cout << "|";
+          } else {
+            std::cout << "| |";
+          }
+        }
+      }
+      std::cout << std::endl;
+    }
+
+    if (y != 1) {
+      std::cout << "  +";
+      for (int i = 0; i < width_x_; ++i) {
+        if (i == 0) {
+          std::cout << "---------+";
+        } else {
+          std::cout << " +---------+";
+        }
+      }
+      std::cout << std::endl;
+    }
+
+    if (y != 1) {
+      std::cout << "  +";
+      for (int i = 0; i < width_x_; ++i) {
+        if (i == 0) {
+          std::cout << "---------+";
+        } else {
+          std::cout << " +---------+";
+        }
+      }
+      std::cout << std::endl;
+    }
+  }
+
+  std::cout << "  +";
+  for (int i = 0; i < width_x_; ++i) {
+    if (i == 0) {
+      std::cout << "---------+";
+    } else {
+      std::cout << " +---------+";
+    }
+  }
+  std::cout << std::endl;
+
+  for (int x = 1; x <= width_x_; ++x) {
+    std::cout << "       " << x << "    ";
+  }
+  std::cout << std::endl;
+}

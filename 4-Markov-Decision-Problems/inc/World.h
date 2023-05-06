@@ -16,6 +16,7 @@ class World {
   bool loadWorldParametersFromFile(const std::string &file_name);
   void printWorldParameters() const;
   bool setGamma(float gamma);
+  void displayWorld() const;
   void setEpsilon(float epsilon) { epsilon_ = epsilon; };
 
  private:
