@@ -15,7 +15,7 @@ class World {
   World() = default;
   bool loadWorldParametersFromFile(const std::string &file_name);
   void printWorldParameters() const;
-  void setGamma(float gamma) { gamma_ = gamma; };
+  bool setGamma(float gamma);
   void setEpsilon(float epsilon) { epsilon_ = epsilon; };
 
  private:
@@ -30,6 +30,9 @@ class World {
   std::vector<std::tuple<int, int, float>> terminal_states_ = {}; // Terminal states (X,Y) and their reward
   std::vector<std::tuple<int, int, float>> special_states_ = {}; // Special states (X,Y) and their reward
   std::vector<std::pair<int, int>> forbidden_states_ = {}; // Forbidden states (X,Y)
+
+  bool checkFileValidity(const std::string &file_name) const;
+  bool checkParametersValidity() const;
 };
 
 #endif //INC_WORLD_H
