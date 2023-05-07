@@ -16,7 +16,9 @@ int main(int argc, char **argv) {
     if (argc > 3) world.setEpsilon(std::stod(argv[3]));
 
     world.printWorldParameters();
+    world.constructWorld();
     world.displayWorld();
+
   } else {
     std::cerr << "Usage: " << argv[0] << " <file_name> [<gamma> <epsilon>]" << std::endl;
     return 1;

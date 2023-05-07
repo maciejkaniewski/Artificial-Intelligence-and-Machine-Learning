@@ -207,81 +207,78 @@ bool World::setGamma(float gamma) {
 
 void World::displayWorld() const {
 
+  auto height = int(constructed_world_.size());
+  auto width = int(constructed_world_[0].size());
+
+  int maxChars = 0;
+
+  for (int i = 0; i < height; i++) {
+    for (int j = 0; j < width; j++) {
+      float num = std::stof(std::to_string(constructed_world_[i][j].utility));
+      int charsBeforeDecimal = std::to_string((int)num).length();
+      if (num < 0) {
+        charsBeforeDecimal++;
+      }
+      if (charsBeforeDecimal > maxChars) {
+        maxChars = charsBeforeDecimal;
+      }
+    }
+  }
+
+  std::string line1;
+  auto line2 = std::string(maxChars+5, ' ');
+  int dash = 0;
+  for (int i = 0; i < maxChars+5; i++) {
+    line1 += "-";
+    dash++;
+  }
+  line1 =  "+-" + line1 + "-+";
+  dash = dash + 2;
+
   std::cout << "  +";
-  for (int i = 0; i < width_x_; ++i) {
+  for (int i = 0; i < width; ++i) {
     if (i == 0) {
-      std::cout << "---------+";
+      std::cout << line1.substr(1);
     } else {
-      std::cout << " +---------+";
+      std::cout << " " <<line1;
     }
   }
   std::cout << std::endl;
 
-  for (int y = height_y_; y >= 1; --y) {
+  for (int y = height; y >= 1; --y) {
     for (int row = 0; row < 3; ++row) {
       if (row == 1) {
         std::cout << y << " |";
       } else {
         std::cout << "  |";
       }
-      for (int x = 1; x <= width_x_; ++x) {
-        if (row == 0) {
-          // First row of the cell
-          if (x == width_x_) {
-            std::cout << "         |";
+      for (int x = 1; x <= width; ++x) {
+        if (row == 1) {
+          std::cout << " " << constructed_world_[y-1][x-1].policy << line2;
+          if (x == width) {
+            std::cout << "|";
           } else {
-            std::cout << "         | |";
+            std::cout << "| |";
           }
         } else if (row == 2) {
-          if (x == width_x_) {
-            std::cout << "         |";
+
+          float num = std::stof(std::to_string(constructed_world_[y-1][x-1].utility));
+          int charsBeforeDecimal = std::to_string((int)num).length();
+
+          auto line3 = std::string(dash-(charsBeforeDecimal+6), ' ');
+
+          std::cout << " " << std::fixed << std::showpoint << std::setprecision(4) << constructed_world_[y-1][x-1].utility << line3;
+
+          if (x == width) {
+            std::cout << "|";
           } else {
-            std::cout << "         | |";
+            std::cout << "| |";
           }
-        } else if (row == 1) {
-          bool printed = false;
+        } else if (row == 0) {
 
-          for (const auto &terminal_state : terminal_states_) {
-            int term_x, term_y;
-            float term_reward;
-            std::tie(term_x, term_y, term_reward) = terminal_state;
-            if (x == term_x && y == term_y) {
-              std::cout << "    T    ";
-              printed = true;
-              break;
-            }
-          }
+          std::cout << " " << constructed_world_[y-1][x-1].state << line2;
 
-          for (const auto &special_state : special_states_) {
-            int spec_x, spec_y;
-            float spec_reward;
-            std::tie(spec_x, spec_y, spec_reward) = special_state;
-            if (x == spec_x && y == spec_y) {
-              std::cout << "    B    ";
-              printed = true;
-              break;
-            }
-          }
-
-          for (const auto &forbidden_state : forbidden_states_) {
-            int forb_x, forb_y;
-            std::tie(forb_x, forb_y) = forbidden_state;
-            if (x == forb_x && y == forb_y) {
-              std::cout << "    F    ";
-              printed = true;
-              break;
-            }
-          }
-
-          if (x == start_x_ && y == start_y_) {
-            std::cout << "    S    ";
-            printed = true;
-          }
-
-          if (!printed) {
-            std::cout << "         ";
-          }
-          if (x == width_x_) {
+          if (x == width) {
             std::cout << "|";
           } else {
             std::cout << "| |";
@@ -293,11 +290,11 @@ void World::displayWorld() const {
 
     if (y != 1) {
       std::cout << "  +";
-      for (int i = 0; i < width_x_; ++i) {
+      for (int i = 0; i < width; ++i) {
         if (i == 0) {
-          std::cout << "---------+";
+          std::cout << line1.substr(1);
         } else {
-          std::cout << " +---------+";
+          std::cout << " " <<line1;
         }
       }
       std::cout << std::endl;
@@ -305,11 +302,11 @@ void World::displayWorld() const {
 
     if (y != 1) {
       std::cout << "  +";
-      for (int i = 0; i < width_x_; ++i) {
+      for (int i = 0; i < width; ++i) {
         if (i == 0) {
-          std::cout << "---------+";
+          std::cout << line1.substr(1);
         } else {
-          std::cout << " +---------+";
+          std::cout << " " <<line1;
         }
       }
       std::cout << std::endl;
@@ -317,17 +314,61 @@ void World::displayWorld() const {
   }
 
   std::cout << "  +";
-  for (int i = 0; i < width_x_; ++i) {
+  for (int i = 0; i < width; ++i) {
     if (i == 0) {
-      std::cout << "---------+";
+      std::cout << line1.substr(1);
     } else {
-      std::cout << " +---------+";
+      std::cout << " " <<line1;
     }
   }
   std::cout << std::endl;
 
-  for (int x = 1; x <= width_x_; ++x) {
-    std::cout << "       " << x << "    ";
+  std::cout <<  "    ";
+  auto line4 = std::string(dash/2-1, ' ');
+  auto line5 = std::string(dash+2, ' ');
+  for (int x = 1; x <= width; ++x) {
+    if(x==1)
+    {
+      std::cout << line4<< x;
+    }else
+    {
+      std::cout << line5 << x;
+    }
   }
   std::cout << std::endl;
+}
+
+void World::constructWorld() {
+
+  std::vector<std::vector<Cell>> world(height_y_, std::vector<Cell>(width_x_));
+
+  for (int y = 1; y <= height_y_; y++) {
+    for (int x = 1; x <= width_x_; x++) {
+      Cell cell;
+
+      for (const auto &[tx, ty, tr] : terminal_states_) {
+        if (x == tx && y == ty) {
+          cell.state = "T";
+          cell.utility = tr;
+        }
+      }
+
+      for (const auto &[sx, sy, sr] : special_states_) {
+        if (x == sx && y == sy) {
+          cell.state = "B";
+          cell.utility = sr;
+        }
+      }
+
+      for (const auto &[fx, fy] : forbidden_states_) {
+        if (x == fx && y == fy) {
+          cell.state = "F";
+        }
+      }
+      world[y - 1][x - 1] = cell;
+    }
+  }
+
+  world[start_y_ - 1][start_x_ - 1].state = "S";
+  constructed_world_ = world;
 }

@@ -1,9 +1,12 @@
 #ifndef INC_WORLD_H
 #define INC_WORLD_H
 
+#include <algorithm>
+#include <cmath>
 #include <filesystem>
 #include <fstream>
 #include <iostream>
+#include <iomanip>
 #include <sstream>
 #include <string>
 #include <tuple>
@@ -19,6 +22,14 @@ class World {
   void displayWorld() const;
   void setEpsilon(float epsilon) { epsilon_ = epsilon; };
 
+  struct Cell {
+    std::string state = " "; // Name of the state
+    float utility = 0.0f; // Utility value with 4 decimal places
+    char policy = ' '; // Policy: <, >, v, ^, or empty
+  };
+
+  void constructWorld();
+
  private:
   int width_x_ = 0; // Defines the horizontal world size
   int height_y_ = 0; // Defines the vertical world size
@@ -31,6 +42,8 @@ class World {
   std::vector<std::tuple<int, int, float>> terminal_states_ = {}; // Terminal states (X,Y) and their reward
   std::vector<std::tuple<int, int, float>> special_states_ = {}; // Special states (X,Y) and their reward
   std::vector<std::pair<int, int>> forbidden_states_ = {}; // Forbidden states (X,Y)
+
+  std::vector<std::vector<Cell>> constructed_world_;
 
   bool checkFileValidity(const std::string &file_name) const;
   bool checkParametersValidity() const;
