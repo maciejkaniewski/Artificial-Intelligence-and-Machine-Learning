@@ -152,7 +152,7 @@ bool World::loadWorldParametersFromFile(const std::string &file_name) {
     } else if (c == 'G') {
       iss >> gamma_;
     } else if (c == 'E') {
-      if (!( iss >> epsilon_)) {
+      if (!(iss >> epsilon_)) {
         std::cerr << "Error: Invalid epsilon definition after E option in file " << file_name << std::endl;
         return false;
       }
@@ -179,11 +179,11 @@ bool World::loadWorldParametersFromFile(const std::string &file_name) {
     }
   }
 
-  if(!is_start_in_file)
-  {
+  if (!is_start_in_file) {
     start_x_ = 1;
     start_y_ = 1;
-    std::cout << "Info: S option isn't present in "<< file_name <<" file. It has been set to default (1,1) value" << std::endl;
+    std::cout << "Info: S option isn't present in " << file_name << " file. It has been set to default (1,1) value"
+              << std::endl;
   }
 
   return checkParametersValidity();
@@ -234,15 +234,18 @@ bool World::setGamma(float gamma) {
 
 void World::displayWorld() const {
 
-  auto height = int(constructed_world_.size());
-  auto width = int(constructed_world_[0].size());
+//  auto height = int(constructed_world_.size());
+//  auto width = int(constructed_world_[0].size());
+
+  auto height = int(constructed_world_[0].size());
+  auto width = int(constructed_world_.size());
 
   int maxChars = 0;
 
-  for (int i = 0; i < height; i++) {
-    for (int j = 0; j < width; j++) {
+  for (int i = 0; i < width; i++) {
+    for (int j = 0; j < height; j++) {
       float num = std::stof(std::to_string(constructed_world_[i][j].utility));
-      int charsBeforeDecimal = std::to_string((int)num).length();
+      int charsBeforeDecimal = std::to_string((int) num).length();
       if (num < 0) {
         charsBeforeDecimal++;
       }
@@ -253,13 +256,13 @@ void World::displayWorld() const {
   }
 
   std::string line1;
-  auto line2 = std::string(maxChars+5, ' ');
+  auto line2 = std::string(maxChars + 5, ' ');
   int dash = 0;
-  for (int i = 0; i < maxChars+5; i++) {
+  for (int i = 0; i < maxChars + 5; i++) {
     line1 += "-";
     dash++;
   }
-  line1 =  "+-" + line1 + "-+";
+  line1 = "+-" + line1 + "-+";
   dash = dash + 2;
 
   std::cout << "  +";
@@ -267,7 +270,7 @@ void World::displayWorld() const {
     if (i == 0) {
       std::cout << line1.substr(1);
     } else {
-      std::cout << " " <<line1;
+      std::cout << " " << line1;
     }
   }
   std::cout << std::endl;
@@ -281,7 +284,7 @@ void World::displayWorld() const {
       }
       for (int x = 1; x <= width; ++x) {
         if (row == 1) {
-          std::cout << " " << constructed_world_[y-1][x-1].policy << line2;
+          std::cout << " " << constructed_world_[x - 1][y - 1].policy << line2;
           if (x == width) {
             std::cout << "|";
           } else {
@@ -289,12 +292,13 @@ void World::displayWorld() const {
           }
         } else if (row == 2) {
 
-          float num = std::stof(std::to_string(constructed_world_[y-1][x-1].utility));
-          int charsBeforeDecimal = std::to_string((int)num).length();
+          float num = std::stof(std::to_string(constructed_world_[x - 1][y - 1].utility));
+          int charsBeforeDecimal = std::to_string((int) num).length();
 
-          auto line3 = std::string(dash-(charsBeforeDecimal+6), ' ');
+          auto line3 = std::string(dash - (charsBeforeDecimal + 6), ' ');
 
-          std::cout << " " << std::fixed << std::showpoint << std::setprecision(4) << constructed_world_[y-1][x-1].utility << line3;
+          std::cout << " " << std::fixed << std::showpoint << std::setprecision(4)
+                    << constructed_world_[x - 1][y - 1].utility << line3;
 
           if (x == width) {
             std::cout << "|";
@@ -303,7 +307,7 @@ void World::displayWorld() const {
           }
         } else if (row == 0) {
 
-          std::cout << " " << constructed_world_[y-1][x-1].state << line2;
+          std::cout << " " << constructed_world_[x - 1][y - 1].state << line2;
 
           if (x == width) {
             std::cout << "|";
@@ -321,7 +325,7 @@ void World::displayWorld() const {
         if (i == 0) {
           std::cout << line1.substr(1);
         } else {
-          std::cout << " " <<line1;
+          std::cout << " " << line1;
         }
       }
       std::cout << std::endl;
@@ -333,7 +337,7 @@ void World::displayWorld() const {
         if (i == 0) {
           std::cout << line1.substr(1);
         } else {
-          std::cout << " " <<line1;
+          std::cout << " " << line1;
         }
       }
       std::cout << std::endl;
@@ -345,20 +349,18 @@ void World::displayWorld() const {
     if (i == 0) {
       std::cout << line1.substr(1);
     } else {
-      std::cout << " " <<line1;
+      std::cout << " " << line1;
     }
   }
   std::cout << std::endl;
 
-  std::cout <<  "    ";
-  auto line4 = std::string(dash/2-1, ' ');
-  auto line5 = std::string(dash+2, ' ');
+  std::cout << "    ";
+  auto line4 = std::string(dash / 2 - 1, ' ');
+  auto line5 = std::string(dash + 2, ' ');
   for (int x = 1; x <= width; ++x) {
-    if(x==1)
-    {
-      std::cout << line4<< x;
-    }else
-    {
+    if (x == 1) {
+      std::cout << line4 << x;
+    } else {
       std::cout << line5 << x;
     }
   }
@@ -367,10 +369,10 @@ void World::displayWorld() const {
 
 void World::constructWorld() {
 
-  std::vector<std::vector<Cell>> world(height_y_, std::vector<Cell>(width_x_));
+  std::vector<std::vector<Cell>> world(width_x_, std::vector<Cell>(height_y_));
 
-  for (int y = 1; y <= height_y_; y++) {
-    for (int x = 1; x <= width_x_; x++) {
+  for (int x = 1; x <= width_x_; x++) {
+    for (int y = 1; y <= height_y_; y++) {
       Cell cell;
 
       for (const auto &[tx, ty, tr] : terminal_states_) {
@@ -392,10 +394,10 @@ void World::constructWorld() {
           cell.state = "F";
         }
       }
-      world[y - 1][x - 1] = cell;
+      world[x - 1][y - 1] = cell;
     }
   }
 
-  world[start_y_ - 1][start_x_ - 1].state = "S";
+  world[start_x_ - 1][start_y_ - 1].state = "S";
   constructed_world_ = world;
 }
