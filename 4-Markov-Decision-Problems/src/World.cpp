@@ -129,6 +129,8 @@ bool World::loadWorldParametersFromFile(const std::string &file_name) {
   std::ifstream infile(file_name);
   std::string line;
 
+  bool is_start_in_file = false;
+
   while (std::getline(infile, line)) {
     std::istringstream iss(line);
     char c;
@@ -139,6 +141,7 @@ bool World::loadWorldParametersFromFile(const std::string &file_name) {
       iss >> width_x_ >> height_y_;
     } else if (c == 'S') {
       iss >> start_x_ >> start_y_;
+      is_start_in_file = true;
     } else if (c == 'P') {
       iss >> p1 >> p2 >> p3;
       p_ = {p1, p2, p3};
@@ -159,6 +162,14 @@ bool World::loadWorldParametersFromFile(const std::string &file_name) {
       forbidden_states_.emplace_back(x, y);
     }
   }
+
+  if(!is_start_in_file)
+  {
+    start_x_ = 1;
+    start_y_ = 1;
+    std::cout << "Info: S option isn't present in "<< file_name <<" file. It has been set to default (1,1) value" << std::endl;
+  }
+
   return checkParametersValidity();
 }
 
