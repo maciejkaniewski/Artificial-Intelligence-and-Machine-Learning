@@ -134,13 +134,15 @@ bool World::loadWorldParametersFromFile(const std::string &file_name) {
   while (std::getline(infile, line)) {
     std::istringstream iss(line);
     char c;
-    int x, y;
-    float p1, p2, p3, reward;
+    float p1, p2, p3;
     iss >> c;
     if (c == 'W') {
       iss >> width_x_ >> height_y_;
     } else if (c == 'S') {
-      iss >> start_x_ >> start_y_;
+      if (!(iss >> start_x_ >> start_y_)) {
+        std::cerr << "Error: Invalid start state definition after S option in file " << file_name << std::endl;
+        return false;
+      }
       is_start_in_file = true;
     } else if (c == 'P') {
       iss >> p1 >> p2 >> p3;
@@ -150,15 +152,29 @@ bool World::loadWorldParametersFromFile(const std::string &file_name) {
     } else if (c == 'G') {
       iss >> gamma_;
     } else if (c == 'E') {
-      iss >> epsilon_;
+      if (!( iss >> epsilon_)) {
+        std::cerr << "Error: Invalid epsilon definition after E option in file " << file_name << std::endl;
+        return false;
+      }
     } else if (c == 'T') {
+      int x, y;
+      float reward;
       iss >> x >> y >> reward;
       terminal_states_.emplace_back(x, y, reward);
     } else if (c == 'B') {
-      iss >> x >> y >> reward;
+      int x, y;
+      float reward;
+      if (!(iss >> x >> y >> reward)) {
+        std::cerr << "Error: Invalid special state definition after B option in file " << file_name << std::endl;
+        return false;
+      }
       special_states_.emplace_back(x, y, reward);
     } else if (c == 'F') {
-      iss >> x >> y;
+      int x, y;
+      if (!(iss >> x >> y)) {
+        std::cerr << "Error: Invalid forbidden state definition after F option in file " << file_name << std::endl;
+        return false;
+      }
       forbidden_states_.emplace_back(x, y);
     }
   }
