@@ -401,3 +401,201 @@ void World::constructWorld() {
   world[start_x_ - 1][start_y_ - 1].state = "S";
   constructed_world_ = world;
 }
+
+void World::valueIterationAlgorithm() {
+
+  auto width = int(constructed_world_.size());
+  auto height = int(constructed_world_[0].size());
+
+  // Actions vector for up, left, right, down
+  std::vector<std::tuple<int, int, char>> actions = {{0, 1, '^'}, {-1, 0, '<'}, {1, 0, '>'}, {0, -1, 'v'}};
+  auto p1 = p_[0];
+  auto p2 = p_[1];
+  auto p3 = p_[2];
+  float p_current = 0.0f;
+
+  int new_x = 0;
+  int new_y = 0;
+
+  int dx = 0;
+  int dy = 0;
+
+  float utility = 0.0f;
+
+  std::vector<float> another_vector;
+
+  // Perform value iteration until convergence
+
+  for (int iteration = 0; iteration < 100; iteration++) {
+    for (int y = 0; y < height; y++) {
+      for (int x = 0; x < width; x++) {
+        // For every action calculate value of ending in every direction
+
+        if (constructed_world_[x][y].state == "T" || constructed_world_[x][y].state == "F") {
+          continue;
+        }
+
+        for (const auto &[dx_a, dy_a, action] : actions) {
+          if (action == '^') // Up action
+          {
+
+            utility = 0;
+
+            for (const auto &[dx_ai, dy_ai, action_i] : actions) {
+
+
+              if (action_i == '^') {
+                p_current = p1;
+                dx = 0;
+                dy = 1;
+              } else if (action_i == '<') {
+                p_current = p2;
+                dx = -1;
+                dy = 0;
+              } else if (action_i == '>') {
+                p_current = p3;
+                dx = 1;
+                dy = 0;
+              } else if (action_i == 'v') {
+                p_current = 1.0f - p1 - p2 - p3;
+                dx = 0;
+                dy = -1;
+              }
+
+              new_x = x + dx;
+              new_y = y + dy;
+
+              if (new_x < 0 || new_x >= width || new_y < 0 || new_y >= height || constructed_world_[new_x][new_y].state == "F") {
+                utility += p_current * constructed_world_[x][y].utility;
+              } else {
+                utility += p_current * constructed_world_[new_x][new_y].utility;
+              }
+            }
+            another_vector.emplace_back(utility);
+          }
+
+          if (action == '<') // Left action
+          {
+
+            utility = 0;
+
+            for (const auto &[dx_ai, dy_ai, action_i] : actions) {
+
+
+              if (action_i == '^') {
+                p_current = p1;
+                dx = -1;
+                dy = 0;
+              } else if (action_i == '<') {
+                p_current = p2;
+                dx = 0;
+                dy = -1;
+              } else if (action_i == '>') {
+                p_current = p3;
+                dx = 0;
+                dy = 1;
+              } else if (action_i == 'v') {
+                p_current = 1.0f - p1 - p2 - p3;
+                dx = 1;
+                dy = 0;
+              }
+
+              new_x = x + dx;
+              new_y = y + dy;
+
+              if (new_x < 0 || new_x >= width || new_y < 0 || new_y >= height || constructed_world_[new_x][new_y].state == "F") {
+                utility += p_current * constructed_world_[x][y].utility;
+              } else {
+                utility += p_current * constructed_world_[new_x][new_y].utility;
+              }
+            }
+            another_vector.emplace_back(utility);
+          }
+
+          if (action == '>') // Right action
+          {
+
+            utility = 0;
+
+            for (const auto &[dx_ai, dy_ai, action_i] : actions) {
+
+
+              if (action_i == '^') {
+                p_current = p1;
+                dx = 1;
+                dy = 0;
+              } else if (action_i == '<') {
+                p_current = p2;
+                dx = 0;
+                dy = 1;
+              } else if (action_i == '>') {
+                p_current = p3;
+                dx = 0;
+                dy = -1;
+              } else if (action_i == 'v') {
+                p_current = 1.0f - p1 - p2 - p3;
+                dx = -1;
+                dy = 0;
+              }
+
+              new_x = x + dx;
+              new_y = y + dy;
+
+              if (new_x < 0 || new_x >= width || new_y < 0 || new_y >= height || constructed_world_[new_x][new_y].state == "F") {
+                utility += p_current * constructed_world_[x][y].utility;
+              } else {
+                utility += p_current * constructed_world_[new_x][new_y].utility;
+              }
+            }
+            another_vector.emplace_back(utility);
+          }
+
+          if (action == 'v') // Down action
+          {
+
+            utility = 0;
+
+            for (const auto &[dx_ai, dy_ai, action_i] : actions) {
+
+              if (action_i == '^') {
+                p_current = p1;
+                dx = 0;
+                dy = -1;
+              } else if (action_i == '<') {
+                p_current = p2;
+                dx = 1;
+                dy = 0;
+              } else if (action_i == '>') {
+                p_current = p3;
+                dx = -1;
+                dy = 0;
+              } else if (action_i == 'v') {
+                p_current = 1.0f - p1 - p2 - p3;
+                dx = 0;
+                dy = 1;
+              }
+
+              new_x = x + dx;
+              new_y = y + dy;
+
+              if (new_x < 0 || new_x >= width || new_y < 0 || new_y >= height || constructed_world_[new_x][new_y].state == "F") {
+                utility += p_current * constructed_world_[x][y].utility;
+              } else {
+                utility += p_current * constructed_world_[new_x][new_y].utility;
+              }
+            }
+            another_vector.emplace_back(utility);
+          }
+        }
+        auto max = *std::max_element(another_vector.begin(), another_vector.end());
+        float new_utility = 0;
+
+        another_vector.clear();
+
+        new_utility = reward_ + gamma_ * max;
+        constructed_world_[x][y].utility = new_utility;
+      }
+    }
+  }
+  displayWorld();
+}

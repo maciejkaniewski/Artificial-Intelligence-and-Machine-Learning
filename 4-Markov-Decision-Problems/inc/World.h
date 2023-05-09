@@ -26,10 +26,10 @@ class World {
     std::string state = " "; // Name of the state
     float utility = 0.0f; // Utility value with 4 decimal places
     char policy = ' '; // Policy: <, >, v, ^, or empty
-    float state_reward = 0.0f;
   };
 
   void constructWorld();
+  void valueIterationAlgorithm();
 
  private:
   int width_x_ = 0; // Defines the horizontal world size
