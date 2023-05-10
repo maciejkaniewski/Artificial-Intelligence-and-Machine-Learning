@@ -5,7 +5,7 @@ float ValueIterationAlgorithm::updateProbability(char action) {
     case '^':return p_[0];
     case '<':return p_[1];
     case '>':return p_[2];
-    case 'v':return 1.0f - p_[0] - p_[1] - p_[2];
+    case 'v':return (1.0f - p_[0] - p_[1] - p_[2]);
     default: return 0;
   }
 }
@@ -119,7 +119,13 @@ void ValueIterationAlgorithm::start(World &world) {
   actions_ = {'^', '<', '>', 'v'};
   std::vector<float> action_utilities;
 
-  for (int iteration = 0; iteration < 100; iteration++) {
+  bool stop_condition = false;
+  float max_delta = std::numeric_limits<float>::max();
+
+  while(!stop_condition) {
+
+    float current_max_delta = 0.0f;
+
     for (int y = 0; y < height_; y++) {
       for (int x = 0; x < width_; x++) {
 
@@ -134,9 +140,16 @@ void ValueIterationAlgorithm::start(World &world) {
 
         action_utilities.clear();
 
-        isPositionSpecial(x, y) ? updateCellPolicy(x, y, new_policy) : (updateCellUtility(x, y, new_utility), updateCellPolicy(x, y, new_policy));
+        if(isPositionSpecial(x,y)) {updateCellPolicy(x, y, new_policy); continue;}
+
+        float utility_delta = std::abs(new_utility - constructed_world_[x][y].utility);
+        if (utility_delta > current_max_delta) current_max_delta = utility_delta;
+        updateCellUtility(x, y, new_utility);
+        updateCellPolicy(x, y, new_policy);
       }
     }
+    stop_condition = (current_max_delta < 0.0001f) || stop_condition;
+    max_delta = (current_max_delta > max_delta) ? current_max_delta : max_delta;
   }
   world.updateConstructedWorld(constructed_world_);
 }
