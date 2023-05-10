@@ -10,6 +10,7 @@
 #include <sstream>
 #include <string>
 #include <tuple>
+#include <utility>
 #include <vector>
 
 class World {
@@ -29,13 +30,15 @@ class World {
   };
 
   void constructWorld();
-  void updateContructedWorldCellUtilityAndPolicy(int x, int y, float utility, char policy);
 
   std::vector<std::vector<Cell>> const getConstructedWorld() {return  constructed_world_;};
   float getGamma() const { return gamma_; };
   float getReward() const {return  reward_;};
   std::vector<float> getP() const { return p_; };
 
+  void updateConstructedWorld(std::vector<std::vector<Cell>> const& new_constructed_world) {
+    constructed_world_=new_constructed_world;
+  }
 
  private:
   int width_x_ = 0; // Defines the horizontal world size

@@ -401,8 +401,3 @@ void World::constructWorld() {
   world[start_x_ - 1][start_y_ - 1].state = "S";
   constructed_world_ = world;
 }
-
-void World::updateContructedWorldCellUtilityAndPolicy(int x, int y, float utility, char policy) {
-  constructed_world_[x][y].utility = utility;
-  constructed_world_[x][y].policy = policy;
-}

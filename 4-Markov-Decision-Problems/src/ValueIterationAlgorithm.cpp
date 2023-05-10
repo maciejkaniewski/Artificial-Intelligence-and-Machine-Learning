@@ -1,29 +1,29 @@
 #include "ValueIterationAlgorithm.h"
 
-float ValueIterationAlgorithm::updateProbability(char action, std::vector<float> p) {
+float ValueIterationAlgorithm::updateProbability(char action) {
   switch (action) {
-    case '^':return p[0];
-    case '<':return p[1];
-    case '>':return p[2];
-    case 'v':return 1.0f - p[0] - p[1] - p[2];
+    case '^':return p_[0];
+    case '<':return p_[1];
+    case '>':return p_[2];
+    case 'v':return 1.0f - p_[0] - p_[1] - p_[2];
     default: return 0;
   }
 }
 
-bool ValueIterationAlgorithm::isPositionOutOfTheWorld(int x, int y, int width, int height) {
-  return (x < 0 || x >= width || y < 0 || y >= height);
+bool ValueIterationAlgorithm::isPositionOutOfTheWorld(int x, int y) {
+  return (x < 0 || x >= width_ || y < 0 || y >= height_);
 }
 
-bool ValueIterationAlgorithm::isPositionForbidden(int x,
-                                                  int y,
-                                                  std::vector<std::vector<World::Cell>> constructed_world) {
-  return constructed_world[x][y].state == "F";
+bool ValueIterationAlgorithm::isPositionForbidden(int x, int y) {
+  return constructed_world_[x][y].state == "F";
 }
 
-bool ValueIterationAlgorithm::isPositionTerminal(int x,
-                                                 int y,
-                                                 std::vector<std::vector<World::Cell>> constructed_world) {
-  return constructed_world[x][y].state == "T";
+bool ValueIterationAlgorithm::isPositionTerminal(int x, int y) {
+  return constructed_world_[x][y].state == "T";
+}
+
+bool ValueIterationAlgorithm::isPositionSpecial(int x, int y) {
+  return constructed_world_[x][y].state == "B";
 }
 
 std::pair<int, int> ValueIterationAlgorithm::calculateNewPosition(int x, int y, int dx, int dy) {
@@ -67,132 +67,76 @@ std::pair<int, int> ValueIterationAlgorithm::updatePositionChanges(char action, 
   }
 }
 
-float ValueIterationAlgorithm::calculateNewUtility(float reward, float gamma, std::vector<float> action_utilities) {
-  return reward + gamma * (*std::max_element(action_utilities.begin(), action_utilities.end()));
+float ValueIterationAlgorithm::calculateNewUtility(std::vector<float> action_utilities) {
+  return reward_ + gamma_ * (*std::max_element(action_utilities.begin(), action_utilities.end()));
 }
-char ValueIterationAlgorithm::getBestPolicy(std::vector<char> actions, std::vector<float> action_utilities) {
-  return actions[std::distance(action_utilities.begin(), std::max_element(action_utilities.begin(), action_utilities.end()))];
+char ValueIterationAlgorithm::getBestPolicy(std::vector<float> action_utilities) {
+  return actions_[std::distance(action_utilities.begin(),
+                                std::max_element(action_utilities.begin(), action_utilities.end()))];
 }
 
+void ValueIterationAlgorithm::updateCellUtility(int x, int y, float new_utility) {
+  constructed_world_[x][y].utility = new_utility;
+}
+void ValueIterationAlgorithm::updateCellPolicy(int x, int y,char new_policy) {
+  constructed_world_[x][y].policy = new_policy;
+}
+
+void ValueIterationAlgorithm::calculateUtilitiesForAllActions(int x,
+                                                              int y,
+                                                              const char &action,
+                                                              std::vector<float> &action_utilities) {
+  float utility = 0.0f;
+
+  for (const auto &action_i : actions_) {
+
+    auto [dx, dy] = updatePositionChanges(action_i, action);
+    auto [new_x, new_y] = calculateNewPosition(x, y, dx, dy);
+    auto p_current = updateProbability(action_i);
+
+    if (isPositionOutOfTheWorld(new_x, new_y) || isPositionForbidden(new_x, new_y)) {
+      utility += p_current * constructed_world_[x][y].utility;
+    } else {
+      utility += p_current * constructed_world_[new_x][new_y].utility;
+    }
+  }
+  action_utilities.emplace_back(utility);
+}
 
 void ValueIterationAlgorithm::start(World &world) {
 
   // Get world parameters
-  auto constructed_world = world.getConstructedWorld();
-  auto reward = world.getReward();
-  auto gamma = world.getGamma();
-  auto p = world.getP();
+  p_ = world.getP();
+  reward_ = world.getReward();
+  gamma_ = world.getGamma();
+  constructed_world_ = world.getConstructedWorld();
 
   // Get world size, width, height
-  auto width = int(constructed_world.size());
-  auto height = int(constructed_world[0].size());
+  width_ = int(constructed_world_.size());
+  height_ = int(constructed_world_[0].size());
 
   // Actions vector for up, left, right, down
-  std::vector<char> actions = {'^', '<', '>', 'v'};
-
-  float utility = 0.0f;
-
+  actions_ = {'^', '<', '>', 'v'};
   std::vector<float> action_utilities;
 
   for (int iteration = 0; iteration < 100; iteration++) {
-    for (int y = 0; y < height; y++) {
-      for (int x = 0; x < width; x++) {
+    for (int y = 0; y < height_; y++) {
+      for (int x = 0; x < width_; x++) {
 
-        if (isPositionTerminal(x, y, constructed_world) || isPositionForbidden(x, y, constructed_world)) {
-          continue;
+        if (isPositionTerminal(x, y) || isPositionForbidden(x, y)) continue;
+
+        for (const auto &action : actions_) {
+          calculateUtilitiesForAllActions(x, y, action,action_utilities);
         }
 
-        for (const auto &action : actions) {
-          if (action == '^') {
-
-            utility = 0.0f;
-
-            for (const auto &action_i : actions) {
-
-              auto [dx, dy] = updatePositionChanges(action_i, action);
-              auto [new_x, new_y] = calculateNewPosition(x, y, dx, dy);
-              auto p_current = updateProbability(action_i, p);
-
-              if (isPositionOutOfTheWorld(new_x, new_y, width, height)
-                  || isPositionForbidden(new_x, new_y, constructed_world)) {
-                utility += p_current * constructed_world[x][y].utility;
-              } else {
-                utility += p_current * constructed_world[new_x][new_y].utility;
-              }
-            }
-            action_utilities.emplace_back(utility);
-          }
-
-          if (action == '<') {
-
-            utility = 0.0f;
-
-            for (const auto &action_i : actions) {
-
-              auto [dx, dy] = updatePositionChanges(action_i, action);
-              auto [new_x, new_y] = calculateNewPosition(x, y, dx, dy);
-              auto p_current = updateProbability(action_i, p);
-
-              if (isPositionOutOfTheWorld(new_x, new_y, width, height)
-                  || isPositionForbidden(new_x, new_y, constructed_world)) {
-                utility += p_current * constructed_world[x][y].utility;
-              } else {
-                utility += p_current * constructed_world[new_x][new_y].utility;
-              }
-            }
-            action_utilities.emplace_back(utility);
-          }
-
-          if (action == '>') {
-
-            utility = 0.0f;
-
-            for (const auto &action_i : actions) {
-
-              auto [dx, dy] = updatePositionChanges(action_i, action);
-              auto [new_x, new_y] = calculateNewPosition(x, y, dx, dy);
-              auto p_current = updateProbability(action_i, p);
-
-              if (isPositionOutOfTheWorld(new_x, new_y, width, height)
-                  || isPositionForbidden(new_x, new_y, constructed_world)) {
-                utility += p_current * constructed_world[x][y].utility;
-              } else {
-                utility += p_current * constructed_world[new_x][new_y].utility;
-              }
-            }
-            action_utilities.emplace_back(utility);
-          }
-
-          if (action == 'v') {
-
-            utility = 0.0f;
-
-            for (const auto &action_i : actions) {
-
-              auto [dx, dy] = updatePositionChanges(action_i, action);
-              auto [new_x, new_y] = calculateNewPosition(x, y, dx, dy);
-              auto p_current = updateProbability(action_i, p);
-
-              if (isPositionOutOfTheWorld(new_x, new_y, width, height)
-                  || isPositionForbidden(new_x, new_y, constructed_world)) {
-                utility += p_current * constructed_world[x][y].utility;
-              } else {
-                utility += p_current * constructed_world[new_x][new_y].utility;
-              }
-            }
-            action_utilities.emplace_back(utility);
-          }
-        }
-
-        auto new_policy = getBestPolicy(actions,action_utilities);
-        auto new_utility = calculateNewUtility(reward,gamma,action_utilities);
+        auto new_policy = getBestPolicy(action_utilities);
+        auto new_utility = calculateNewUtility(action_utilities);
 
         action_utilities.clear();
 
-        world.updateContructedWorldCellUtilityAndPolicy(x, y, new_utility, new_policy);
-        constructed_world = world.getConstructedWorld();
+        isPositionSpecial(x, y) ? updateCellPolicy(x, y, new_policy) : (updateCellUtility(x, y, new_utility), updateCellPolicy(x, y, new_policy));
       }
     }
   }
-  world.displayWorld();
+  world.updateConstructedWorld(constructed_world_);
 }

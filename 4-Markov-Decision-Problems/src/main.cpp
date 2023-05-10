@@ -19,6 +19,7 @@ int main(int argc, char **argv) {
     world.printWorldParameters();
     world.constructWorld();
     ValueIterationAlgorithm::start(world);
+    world.displayWorld();
 
   } else {
     std::cerr << "Usage: " << argv[0] << " <file_name> [<gamma> <epsilon>]" << std::endl;
