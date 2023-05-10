@@ -5,7 +5,7 @@ set(CMAKE_CXX_STANDARD 17)
 
 include_directories(inc)
 
-set(SOURCES src/main.cpp src/World.cpp)
+set(SOURCES src/main.cpp src/World.cpp src/ValueIterationAlgorithm.cpp inc/ValueIterationAlgorithm.h)
 
 add_executable(markov-decision-problems ${SOURCES})
 target_compile_options(markov-decision-problems PRIVATE -Wall -Wextra -pedantic -Werror)

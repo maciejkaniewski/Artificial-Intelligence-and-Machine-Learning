@@ -1,4 +1,5 @@
 #include "World.h"
+#include "ValueIterationAlgorithm.h"
 
 int main(int argc, char **argv) {
 
@@ -17,8 +18,7 @@ int main(int argc, char **argv) {
 
     world.printWorldParameters();
     world.constructWorld();
-    world.displayWorld();
-    world.valueIterationAlgorithm();
+    ValueIterationAlgorithm::start(world);
 
   } else {
     std::cerr << "Usage: " << argv[0] << " <file_name> [<gamma> <epsilon>]" << std::endl;

@@ -29,7 +29,13 @@ class World {
   };
 
   void constructWorld();
-  void valueIterationAlgorithm();
+  void updateContructedWorldCellUtilityAndPolicy(int x, int y, float utility, char policy);
+
+  std::vector<std::vector<Cell>> const getConstructedWorld() {return  constructed_world_;};
+  float getGamma() const { return gamma_; };
+  float getReward() const {return  reward_;};
+  std::vector<float> getP() const { return p_; };
+
 
  private:
   int width_x_ = 0; // Defines the horizontal world size
