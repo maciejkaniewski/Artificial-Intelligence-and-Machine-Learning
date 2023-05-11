@@ -230,7 +230,7 @@ bool World::setGamma(float gamma) {
     gamma_ = gamma;
     return true;
   }
-};
+}
 
 void World::displayWorld() const {
 
