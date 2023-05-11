@@ -7,6 +7,15 @@ class ValueIterationAlgorithm {
  public:
   ValueIterationAlgorithm() = default;
   static void start(World &world);
+
+  struct StateData {
+    int x;
+    int y;
+    std::vector<double> utilities;
+  };
+
+  static std::vector<StateData> inline saved_state_utilities_;
+
  private:
   static bool isPositionOutOfTheWorld(int x, int y);
   static bool isPositionForbidden(int x, int y);
@@ -23,6 +32,9 @@ class ValueIterationAlgorithm {
 
   static void updateCellUtility(int x, int y, float new_utility);
   static void updateCellPolicy(int x, int y,char new_policy);
+
+  static void initSavedStateUtilities();
+  static void saveStateUtility(int x, int y);
 
   static void calculateUtilitiesForAllActions(int x, int y, const char &action, std::vector<float> &action_utilities);
 

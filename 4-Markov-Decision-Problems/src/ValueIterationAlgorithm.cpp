@@ -78,8 +78,21 @@ char ValueIterationAlgorithm::getBestPolicy(std::vector<float> action_utilities)
 void ValueIterationAlgorithm::updateCellUtility(int x, int y, float new_utility) {
   constructed_world_[x][y].utility = new_utility;
 }
-void ValueIterationAlgorithm::updateCellPolicy(int x, int y,char new_policy) {
+void ValueIterationAlgorithm::updateCellPolicy(int x, int y, char new_policy) {
   constructed_world_[x][y].policy = new_policy;
+}
+
+void ValueIterationAlgorithm::initSavedStateUtilities() {
+  for (int y = 0; y < height_; y++) {
+    for (int x = 0; x < width_; x++) {
+      StateData state = {x, y, std::vector<double>()};
+      saved_state_utilities_.push_back(state);
+    }
+  }
+}
+
+void ValueIterationAlgorithm::saveStateUtility(int x, int y) {
+  saved_state_utilities_[x + y * width_].utilities.push_back(constructed_world_[x][y].utility);
 }
 
 void ValueIterationAlgorithm::calculateUtilitiesForAllActions(int x,
@@ -122,17 +135,22 @@ void ValueIterationAlgorithm::start(World &world) {
   bool stop_condition = false;
   float max_delta = std::numeric_limits<float>::max();
 
-  while(!stop_condition) {
+  initSavedStateUtilities();
+
+  while (!stop_condition) {
 
     float current_max_delta = 0.0f;
 
     for (int y = 0; y < height_; y++) {
       for (int x = 0; x < width_; x++) {
 
-        if (isPositionTerminal(x, y) || isPositionForbidden(x, y)) continue;
+        if (isPositionTerminal(x, y) || isPositionForbidden(x, y)) {
+          saveStateUtility(x, y);
+          continue;
+        }
 
         for (const auto &action : actions_) {
-          calculateUtilitiesForAllActions(x, y, action,action_utilities);
+          calculateUtilitiesForAllActions(x, y, action, action_utilities);
         }
 
         auto new_policy = getBestPolicy(action_utilities);
@@ -140,12 +158,17 @@ void ValueIterationAlgorithm::start(World &world) {
 
         action_utilities.clear();
 
-        if(isPositionSpecial(x,y)) {updateCellPolicy(x, y, new_policy); continue;}
+        if (isPositionSpecial(x, y)) {
+          updateCellPolicy(x, y, new_policy);
+          saveStateUtility(x, y);
+          continue;
+        }
 
         float utility_delta = std::abs(new_utility - constructed_world_[x][y].utility);
         if (utility_delta > current_max_delta) current_max_delta = utility_delta;
         updateCellUtility(x, y, new_utility);
         updateCellPolicy(x, y, new_policy);
+        saveStateUtility(x, y);
       }
     }
     stop_condition = (current_max_delta < 0.0001f) || stop_condition;
