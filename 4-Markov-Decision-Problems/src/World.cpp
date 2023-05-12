@@ -191,34 +191,34 @@ bool World::loadWorldParametersFromFile(const std::string &file_name) {
 
 void World::printWorldParameters() const {
 
-  std::cout << "World Parameters:" << std::endl;
-  std::cout << "Width X: " << width_x_ << std::endl;
-  std::cout << "Height Y: " << height_y_ << std::endl;
-  std::cout << "Start X: " << start_x_ << std::endl;
-  std::cout << "Start Y: " << start_y_ << std::endl;
-  std::cout << "Uncertainty Distribution P: ";
-  for (float p : p_) {
-    std::cout << p << " ";
-  }
   std::cout << std::endl;
-  std::cout << "Reward: " << reward_ << std::endl;
-  std::cout << "Discounting Parameter Gamma: " << gamma_ << std::endl;
-  std::cout << "Exploration Parameter Epsilon: " << epsilon_ << std::endl;
-  std::cout << "Terminal States:";
+  std::cout << "  World Parameters:" << std::endl;
+  std::cout << "  Width X: " << width_x_ << std::endl;
+  std::cout << "  Height Y: " << height_y_ << std::endl;
+  std::cout << "  Start X: " << start_x_ << std::endl;
+  std::cout << "  Start Y: " << start_y_ << std::endl;
+  std::cout << "  Uncertainty Distribution P: ";
+  std::cout << p_[0] <<"(^)" << ", ";
+  std::cout << p_[1] <<"(<)" << ", ";
+  std::cout << p_[2] <<"(>)" << std::endl;
+  std::cout << "  Reward: " << reward_ << std::endl;
+  std::cout << "  Discounting Parameter Gamma: " << gamma_ << std::endl;
+  std::cout << "  Exploration Parameter Epsilon: " << epsilon_ << std::endl;
+  std::cout << "  (T) Terminal States:";
   for (auto [x, y, reward] : terminal_states_) {
     std::cout << " (" << x << "," << y << "," << reward << ")";
   }
   std::cout << std::endl;
-  std::cout << "Special States:";
+  std::cout << "  (B) Special States:";
   for (auto [x, y, reward] : special_states_) {
     std::cout << " (" << x << "," << y << "," << reward << ")";
   }
   std::cout << std::endl;
-  std::cout << "Forbidden States:";
+  std::cout << "  (F) Forbidden States:";
   for (auto [x, y] : forbidden_states_) {
     std::cout << " (" << x << "," << y << ")";
   }
-  std::cout << std::endl;
+  std::cout << std::endl << std::endl;
 }
 
 bool World::setGamma(float gamma) {

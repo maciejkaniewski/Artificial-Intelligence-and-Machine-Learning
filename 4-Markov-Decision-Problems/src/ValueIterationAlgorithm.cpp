@@ -87,6 +87,7 @@ void ValueIterationAlgorithm::initSavedStateUtilities() {
     for (int x = 0; x < width_; x++) {
       StateData state = {x, y, std::vector<double>()};
       saved_state_utilities_.push_back(state);
+      saveStateUtility(x,y);
     }
   }
 }
