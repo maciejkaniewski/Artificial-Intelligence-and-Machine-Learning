@@ -67,8 +67,9 @@ std::pair<int, int> ValueIterationAlgorithm::updatePositionChanges(char action, 
   }
 }
 
-float ValueIterationAlgorithm::calculateNewUtility(std::vector<float> action_utilities) {
-  return reward_ + gamma_ * (*std::max_element(action_utilities.begin(), action_utilities.end()));
+float ValueIterationAlgorithm::calculateNewUtility(std::vector<float> action_utilities, int x, int y) {
+  return constructed_world_[x][y].reward
+      + gamma_ * (*std::max_element(action_utilities.begin(), action_utilities.end()));
 }
 char ValueIterationAlgorithm::getBestPolicy(std::vector<float> action_utilities) {
   return actions_[std::distance(action_utilities.begin(),
@@ -87,7 +88,7 @@ void ValueIterationAlgorithm::initSavedStateUtilities() {
     for (int x = 0; x < width_; x++) {
       StateData state = {x, y, std::vector<double>()};
       saved_state_utilities_.push_back(state);
-      saveStateUtility(x,y);
+      saveStateUtility(x, y);
     }
   }
 }
@@ -155,15 +156,9 @@ void ValueIterationAlgorithm::start(World &world) {
         }
 
         auto new_policy = getBestPolicy(action_utilities);
-        auto new_utility = calculateNewUtility(action_utilities);
+        auto new_utility = calculateNewUtility(action_utilities, x, y);
 
         action_utilities.clear();
-
-        if (isPositionSpecial(x, y)) {
-          updateCellPolicy(x, y, new_policy);
-          saveStateUtility(x, y);
-          continue;
-        }
 
         float utility_delta = std::abs(new_utility - constructed_world_[x][y].utility);
         if (utility_delta > current_max_delta) current_max_delta = utility_delta;

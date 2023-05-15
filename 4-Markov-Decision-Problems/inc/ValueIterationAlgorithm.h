@@ -27,7 +27,7 @@ class ValueIterationAlgorithm {
   static std::vector<std::tuple<int, int>> updateActions(char desired_orientation);
   static std::pair<int, int> updatePositionChanges(char action, char current_orientation);
 
-  static float calculateNewUtility(std::vector<float> action_utilities);
+  static float calculateNewUtility(std::vector<float> action_utilities, int x, int y);
   static char getBestPolicy(std::vector<float> action_utilities);
 
   static void updateCellUtility(int x, int y, float new_utility);

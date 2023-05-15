@@ -375,23 +375,27 @@ void World::constructWorld() {
     for (int y = 1; y <= height_y_; y++) {
       Cell cell;
 
+      cell.reward = reward_;
+
       for (const auto &[tx, ty, tr] : terminal_states_) {
         if (x == tx && y == ty) {
           cell.state = "T";
           cell.utility = tr;
+          cell.reward = cell.utility;
         }
       }
 
       for (const auto &[sx, sy, sr] : special_states_) {
         if (x == sx && y == sy) {
           cell.state = "B";
-          cell.utility = sr;
+          cell.reward = sr;
         }
       }
 
       for (const auto &[fx, fy] : forbidden_states_) {
         if (x == fx && y == fy) {
           cell.state = "F";
+          cell.reward = 0.0f;
         }
       }
       world[x - 1][y - 1] = cell;
