@@ -28,12 +28,14 @@ class World {
     float utility = 0.0f; // Utility value with 4 decimal places
     char policy = ' '; // Policy: <, >, v, ^, or empty
     float reward = 0.0f;
+    double q = 0.0;
   };
 
   void constructWorld();
 
   std::vector<std::vector<Cell>> const getConstructedWorld() {return  constructed_world_;};
   float getGamma() const { return gamma_; };
+  float getEpsilon() const {return epsilon_;};
   float getReward() const {return  reward_;};
   std::vector<float> getP() const { return p_; };
 

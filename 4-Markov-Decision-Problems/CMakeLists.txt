@@ -5,7 +5,8 @@ set(CMAKE_CXX_STANDARD 17)
 
 include_directories(inc)
 
-set(SOURCES src/main.cpp src/World.cpp src/ValueIterationAlgorithm.cpp inc/ValueIterationAlgorithm.h src/Plotter.cpp inc/Plotter.h)
+set(SOURCES_A src/mainValueIteration.cpp src/World.cpp src/ValueIterationAlgorithm.cpp inc/ValueIterationAlgorithm.h src/Plotter.cpp inc/Plotter.h)
+set(SOURCES_B src/mainQLearning.cpp src/World.cpp src/Plotter.cpp inc/Plotter.h src/QLearning.cpp inc/QLearning.h)
 
 if(${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_BINARY_DIR})
     message(FATAL_ERROR "In-source builds not allowed. Please make a new directory (called a build directory) and run CMake from there. You may need to remove CMakeCache.txt. ")
@@ -27,11 +28,19 @@ if(NOT matplotlib_POPULATED)
 endif()
 include_directories(SYSTEM ${matplotlib_SOURCE_DIR})
 
-add_executable(markov-decision-problems ${SOURCES})
+add_executable(value_iteration ${SOURCES_A})
+add_executable(qlearning ${SOURCES_B})
 
-target_compile_options(markov-decision-problems PRIVATE -Wall -Wextra -pedantic -Werror)
+target_compile_options(value_iteration PRIVATE -Wall -Wextra -pedantic -Werror)
+target_compile_options(qlearning PRIVATE -Wall -Wextra -pedantic -Werror)
 
-target_link_libraries(markov-decision-problems
+target_link_libraries(value_iteration
+        PRIVATE
+        ${PYTHON_LIBRARIES}
+        Python3::NumPy
+        )
+
+target_link_libraries(qlearning
         PRIVATE
         ${PYTHON_LIBRARIES}
         Python3::NumPy

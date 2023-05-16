@@ -30,7 +30,7 @@ int main(int argc, char **argv) {
     }
 
   } else {
-    std::cerr << "Usage: " << argv[0] << " <file_name> [<gamma>] [<epsilon>] [-plot]" << std::endl;
+    std::cerr << "Usage: " << argv[0] << " <file_name> [<gamma>] [<epsilon>] [<-plot>]" << std::endl;
     return 1;
   }
 }
