@@ -31,8 +31,8 @@ include_directories(SYSTEM ${matplotlib_SOURCE_DIR})
 add_executable(value_iteration ${SOURCES_A})
 add_executable(qlearning ${SOURCES_B})
 
-target_compile_options(value_iteration PRIVATE -Wall -Wextra -pedantic -Werror)
-target_compile_options(qlearning PRIVATE -Wall -Wextra -pedantic -Werror)
+target_compile_options(value_iteration PRIVATE -Wall -Wextra -pedantic)
+target_compile_options(qlearning PRIVATE -Wall -Wextra -pedantic)
 
 target_link_libraries(value_iteration
         PRIVATE

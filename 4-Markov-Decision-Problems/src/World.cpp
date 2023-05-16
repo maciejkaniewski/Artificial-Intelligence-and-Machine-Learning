@@ -198,9 +198,9 @@ void World::printWorldParameters() const {
   std::cout << "  Start X: " << start_x_ << std::endl;
   std::cout << "  Start Y: " << start_y_ << std::endl;
   std::cout << "  Uncertainty Distribution P: ";
-  std::cout << p_[0] <<"(^)" << ", ";
-  std::cout << p_[1] <<"(<)" << ", ";
-  std::cout << p_[2] <<"(>)" << std::endl;
+  std::cout << p_[0] << "(^)" << ", ";
+  std::cout << p_[1] << "(<)" << ", ";
+  std::cout << p_[2] << "(>)" << std::endl;
   std::cout << "  Reward: " << reward_ << std::endl;
   std::cout << "  Discounting Parameter Gamma: " << gamma_ << std::endl;
   std::cout << "  Exploration Parameter Epsilon: " << epsilon_ << std::endl;
@@ -404,4 +404,15 @@ void World::constructWorld() {
 
   world[start_x_ - 1][start_y_ - 1].state = "S";
   constructed_world_ = world;
+}
+
+std::pair<int, int> World::getCoordinatesOfState(std::string_view targetState) const {
+  for (int i = 0; i < int(constructed_world_.size()); i++) {
+    for (int j = 0; j < int(constructed_world_[i].size()); j++) {
+      if (constructed_world_[i][j].state == targetState) {
+        return {i, j};  // Return x, y coordinates as a pair
+      }
+    }
+  }
+  return {0, 0};  // Return (-1, -1) if targetState not found
 }

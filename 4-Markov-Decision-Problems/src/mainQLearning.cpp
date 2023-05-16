@@ -87,8 +87,9 @@ int main(int argc, char** argv) {
 
   world.printWorldParameters();
   world.constructWorld();
+  world.displayWorld();
   QLearning::start(world);
-//world.displayWorld();
+  world.displayWorld();
 
   if (args.shouldPlot) {
 // Plotting code here

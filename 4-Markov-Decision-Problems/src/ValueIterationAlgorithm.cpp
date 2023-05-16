@@ -79,6 +79,7 @@ char ValueIterationAlgorithm::getBestPolicy(std::vector<float> action_utilities)
 void ValueIterationAlgorithm::updateCellUtility(int x, int y, float new_utility) {
   constructed_world_[x][y].utility = new_utility;
 }
+
 void ValueIterationAlgorithm::updateCellPolicy(int x, int y, char new_policy) {
   constructed_world_[x][y].policy = new_policy;
 }

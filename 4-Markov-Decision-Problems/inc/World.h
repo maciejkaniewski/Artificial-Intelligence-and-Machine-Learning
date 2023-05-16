@@ -12,6 +12,7 @@
 #include <tuple>
 #include <utility>
 #include <vector>
+#include <unordered_map>
 
 class World {
 
@@ -27,8 +28,22 @@ class World {
     std::string state = " "; // Name of the state
     float utility = 0.0f; // Utility value with 4 decimal places
     char policy = ' '; // Policy: <, >, v, ^, or empty
-    float reward = 0.0f;
-    double q = 0.0;
+    float reward = 0.0f; // Reward for state
+
+    // Below fields are used in Q learning
+    std::unordered_map<char, double> q =
+      {
+          {'v', 0},
+          {'<', 0},
+          {'>', 0},
+          {'^', 0}
+      };
+    std::unordered_map<char,int> n = {
+        {'v', 0},
+        {'<', 0},
+        {'>', 0},
+        {'^', 0}
+    };
   };
 
   void constructWorld();
@@ -37,6 +52,9 @@ class World {
   float getGamma() const { return gamma_; };
   float getEpsilon() const {return epsilon_;};
   float getReward() const {return  reward_;};
+
+  std::pair<int, int> getCoordinatesOfState(std::string_view targetState) const;
+
   std::vector<float> getP() const { return p_; };
 
   void updateConstructedWorld(std::vector<std::vector<Cell>> const& new_constructed_world) {
