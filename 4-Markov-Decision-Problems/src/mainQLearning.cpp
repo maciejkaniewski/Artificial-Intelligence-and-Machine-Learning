@@ -87,7 +87,6 @@ int main(int argc, char** argv) {
 
   world.printWorldParameters();
   world.constructWorld();
-  world.displayWorld();
   QLearning::start(world);
   world.displayWorld();
 

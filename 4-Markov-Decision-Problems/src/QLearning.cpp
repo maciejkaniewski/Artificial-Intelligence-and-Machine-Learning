@@ -26,12 +26,21 @@ float QLearning::updateProbability(char action) {
     default:return 0;
   }
 }
-std::pair<int, int> QLearning::calculateNewPosition(int x, int y, int dx, int dy) {
-  return std::make_pair(x + dx, y + dy);
+
+void QLearning::updateCellPolicy(int x, int y, char new_policy) {
+  constructed_world_[x][y].policy = new_policy;
 }
 
-std::vector<std::tuple<int, int>> QLearning::updateActions(char desired_orientation) {
-  switch (desired_orientation) {
+void QLearning::updateCellUtility(int x, int y, float new_utility) {
+  constructed_world_[x][y].utility = new_utility;
+}
+
+void QLearning::updateFrequency(int x, int y, char currentAction) {
+  constructed_world_[x][y].n.at(currentAction) += 1;
+}
+
+std::vector<std::tuple<int, int>> QLearning::updateActions(char desiredOrientation) {
+  switch (desiredOrientation) {
     case '^':return {{0, 1}, {-1, 0}, {1, 0}, {0, -1}};
     case '<':return {{-1, 0}, {0, -1}, {0, 1}, {1, 0}};
     case '>':return {{1, 0}, {0, 1}, {0, -1}, {-1, 0}};
@@ -40,9 +49,9 @@ std::vector<std::tuple<int, int>> QLearning::updateActions(char desired_orientat
   }
 }
 
-std::pair<int, int> QLearning::updatePositionChanges(char action, char current_orientation) {
+std::pair<int, int> QLearning::updatePositionChanges(char action, char currentOrientation) {
 
-  auto actions = updateActions(current_orientation);
+  auto actions = updateActions(currentOrientation);
 
   switch (action) {
     case '^': {
@@ -67,22 +76,50 @@ std::pair<int, int> QLearning::updatePositionChanges(char action, char current_o
   }
 }
 
-void QLearning::sumAndRemoveDuplicates(std::vector<Point>& points) {
+float QLearning::getStateReward(int x, int y) {
+  return constructed_world_[x][y].reward;
+}
+
+double QLearning::getQ(int x, int y, char currentAction) {
+  return constructed_world_[x][y].q.at(currentAction);
+}
+
+int QLearning::getFrequencyOfAction(int x, int y, char currentAction) {
+  return constructed_world_[x][y].n.at(currentAction);
+}
+
+std::pair<char, double> QLearning::getBestPolicyAndMaxQ(int x, int y) {
+  char best_policy = ' ';
+  auto max_q = std::numeric_limits<double>::lowest();
+  for (const auto &[policy, q] : constructed_world_[x][y].q) {
+    if (q > max_q) {
+      max_q = q;
+      best_policy = policy;
+    }
+  }
+  return std::make_pair(best_policy, max_q);
+}
+
+std::pair<int, int> QLearning::calculateNewPosition(int x, int y, int dx, int dy) {
+  return std::make_pair(x + dx, y + dy);
+}
+
+
+void QLearning::sumAndRemoveDuplicates(std::vector<Point> &points) {
   std::map<std::pair<int, int>, float> sumMap;
 
-  for (const Point& point : points) {
+  for (const Point &point : points) {
     std::pair<int, int> key = std::make_pair(point.x, point.y);
     if (sumMap.count(key) > 0) {
       sumMap[key] += point.p;
-    }
-    else {
+    } else {
       sumMap[key] = point.p;
     }
   }
 
   points.clear();
 
-  for (const auto& pair : sumMap) {
+  for (const auto &pair : sumMap) {
     if (pair.second != 0.0f) {
       Point newPoint;
       newPoint.x = pair.first.first;
@@ -93,9 +130,11 @@ void QLearning::sumAndRemoveDuplicates(std::vector<Point>& points) {
   }
 }
 
-std::vector<QLearning::Point> QLearning::calculateNewPositionsPossibilitiesForAllActions(int x, int y, const char &action) {
+std::vector<QLearning::Point> QLearning::calculateNewPositionsPossibilitiesForAllActions(int x,
+                                                                                         int y,
+                                                                                         const char &action) {
   std::vector<Point> points;
-  Point point = {0,0,0};
+  Point point = {0, 0, 0};
 
   for (const auto &action_i : actions_) {
 
@@ -134,31 +173,33 @@ char QLearning::generateRandomAction(char currentPolicy) {
   }
 }
 
-std::pair<int,int> QLearning::executeAgentMove(int x, int y, std::vector<Point> possibleMoves) {
+std::pair<int, int> QLearning::executeAgentMove(int x, int y, std::vector<Point> possibleMoves) {
   std::random_device rd;
   std::mt19937 gen(rd());
   std::uniform_real_distribution<> dis(0.0, 1.0);
   double random_number = dis(gen);
-  for (auto const& move : possibleMoves)
-  {
-    if (random_number < move.p)
-    {
-      return std::make_pair(move.x,move.y);
-    }
-    else
-    {
-      random_number -= move.p;
-    }
+  for (auto const &move : possibleMoves) {
+    if (random_number < move.p) return std::make_pair(move.x, move.y);
+    random_number -= move.p;
   }
-  return std::make_pair(x,y);
+  return std::make_pair(x, y);
 }
 
-void QLearning::updateCellUtility(int x, int y, float new_utility) {
-  constructed_world_[x][y].utility = new_utility;
-}
+void QLearning::displayProgressBar(int currentIteration, int totalIterations, int barWidth = 50) {
+  float progress = static_cast<float>(currentIteration) / totalIterations;
+  int filledWidth = static_cast<int>(progress * barWidth);
 
-void QLearning::updateCellPolicy(int x, int y, char new_policy) {
-  constructed_world_[x][y].policy = new_policy;
+  std::cout << "  QLearning: [";
+  for (int i = 0; i < barWidth; ++i) {
+    if (i < filledWidth)
+      std::cout << "=";
+    else if (i == filledWidth)
+      std::cout << ">";
+    else
+      std::cout << " ";
+  }
+  std::cout << "] " << static_cast<int>(progress * 100.0) << "%\r";
+  std::cout.flush();
 }
 
 void QLearning::start(World &world) {
@@ -169,62 +210,46 @@ void QLearning::start(World &world) {
   epsilon_ = world.getEpsilon();
   constructed_world_ = world.getConstructedWorld();
 
-  // Get world size, width, height
   width_ = int(constructed_world_.size());
   height_ = int(constructed_world_[0].size());
 
   actions_ = {'^', '<', '>', 'v'};
 
-  // Define iterations
   if (!isIterationDefinedByUser_) iteration_ = 10000;
 
   for (int i = 0; i < iteration_; ++i) {
+    displayProgressBar(i + 1, iteration_);
     auto [x, y] = world.getCoordinatesOfState("S");
     int current_x = x;
     int current_y = y;
     while (true) {
-      auto current_reward = constructed_world_[current_x][current_y].reward;
 
       if (isPositionTerminal(current_x, current_y)) break;
 
       auto current_action = generateRandomAction(constructed_world_[current_x][current_y].policy);
       auto test = calculateNewPositionsPossibilitiesForAllActions(current_x, current_y, current_action);
       auto [new_x, new_y] = executeAgentMove(current_x, current_y, test);
-      auto new_reward = constructed_world_[new_x][new_y].reward;
 
-      constructed_world_[current_x][current_y].n.at(current_action) += 1;
+      updateFrequency(current_x,current_y,current_action);
 
-      double alpha = 1.0/constructed_world_[current_x][current_y].n.at(current_action);
-      double old_q = constructed_world_[current_x][current_y].q.at(current_action);
+      double alpha = 1.0 / getFrequencyOfAction(current_x,current_y,current_action);
+      double old_q = getQ(current_x,current_y,current_action);
 
-      double max_q = std::numeric_limits<double>::lowest();
-      char optimal_action = ' ';
+      auto [new_best_policy, new_max_q] = getBestPolicyAndMaxQ(new_x, new_y);
 
-      for (const auto& [policy, q] : constructed_world_[new_x][new_y].q) {
-        if (q > max_q) {
-          max_q = q;
-          optimal_action = policy;
-        }
-      }
+      if (isPositionTerminal(new_x, new_y)) new_max_q = getStateReward(new_x, new_y);
 
-      if (isPositionTerminal(new_x, new_y)) max_q = new_reward;
+      double new_q = getStateReward(current_x, current_y) + gamma_ * new_max_q;
+      constructed_world_[current_x][current_y].q.at(current_action) = old_q + alpha * (new_q - old_q);
+      if(!isPositionTerminal(new_x,new_y)) updateCellPolicy(new_x, new_y, new_best_policy);
 
-      double new_q = current_reward + gamma_ * max_q;
-      constructed_world_[current_x][current_y].q.at(current_action) = old_q + alpha * (new_q-old_q);
-      constructed_world_[new_x][new_y].policy = optimal_action;
+      auto [current_best_policy, current_max_q] = getBestPolicyAndMaxQ(current_x, current_y);
 
-      max_q = std::numeric_limits<double>::lowest();
-
-      for (const auto& [policy, q] : constructed_world_[current_x][current_y].q) {
-        if (q > max_q) {
-          max_q = q;
-        }
-      }
-      constructed_world_[current_x][current_y].utility = max_q;
+      updateCellUtility(current_x, current_y, float(current_max_q));
       current_x = new_x;
       current_y = new_y;
     }
   }
+  std::cout<<"\n\n";
   world.updateConstructedWorld(constructed_world_);
 }
-
