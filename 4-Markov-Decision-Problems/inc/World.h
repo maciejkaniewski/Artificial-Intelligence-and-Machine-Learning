@@ -31,14 +31,14 @@ class World {
     float reward = 0.0f; // Reward for state
 
     // Below fields are used in Q learning
-    std::unordered_map<char, double> q =
-      {
-          {'v', 0},
-          {'<', 0},
-          {'>', 0},
-          {'^', 0}
-      };
-    std::unordered_map<char,int> n = {
+    std::unordered_map<char, double> q = {
+        {'v', 0},
+        {'<', 0},
+        {'>', 0},
+        {'^', 0}
+    };
+
+    std::unordered_map<char, int> n = {
         {'v', 0},
         {'<', 0},
         {'>', 0},
@@ -48,17 +48,17 @@ class World {
 
   void constructWorld();
 
-  std::vector<std::vector<Cell>> const getConstructedWorld() {return  constructed_world_;};
+  std::vector<std::vector<Cell>> const getConstructedWorld() { return constructed_world_; };
   float getGamma() const { return gamma_; };
-  float getEpsilon() const {return epsilon_;};
-  float getReward() const {return  reward_;};
+  float getEpsilon() const { return epsilon_; };
+  float getReward() const { return reward_; };
 
   std::pair<int, int> getCoordinatesOfState(std::string_view targetState) const;
 
   std::vector<float> getP() const { return p_; };
 
-  void updateConstructedWorld(std::vector<std::vector<Cell>> const& new_constructed_world) {
-    constructed_world_=new_constructed_world;
+  void updateConstructedWorld(std::vector<std::vector<Cell>> const &new_constructed_world) {
+    constructed_world_ = new_constructed_world;
   }
 
  private:

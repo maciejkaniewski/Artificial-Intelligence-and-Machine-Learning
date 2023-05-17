@@ -91,7 +91,7 @@ int main(int argc, char** argv) {
   world.displayWorld();
 
   if (args.shouldPlot) {
-// Plotting code here
+    Plotter::plot(QLearning::saved_state_utilities_);
   }
 
   return 0;

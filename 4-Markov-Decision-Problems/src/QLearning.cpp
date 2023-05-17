@@ -202,6 +202,20 @@ void QLearning::displayProgressBar(int currentIteration, int totalIterations, in
   std::cout.flush();
 }
 
+void QLearning::initSavedStateUtilities() {
+  for (int y = 0; y < height_; y++) {
+    for (int x = 0; x < width_; x++) {
+      StateData state = {x, y, std::vector<double>()};
+      saved_state_utilities_.push_back(state);
+      saveStateUtility(x, y);
+    }
+  }
+}
+
+void QLearning::saveStateUtility(int x, int y) {
+  saved_state_utilities_[x + y * width_].utilities.push_back(constructed_world_[x][y].utility);
+}
+
 void QLearning::start(World &world) {
 
   p_ = world.getP();
@@ -216,6 +230,8 @@ void QLearning::start(World &world) {
   actions_ = {'^', '<', '>', 'v'};
 
   if (!isIterationDefinedByUser_) iteration_ = 10000;
+
+  initSavedStateUtilities();
 
   for (int i = 0; i < iteration_; ++i) {
     displayProgressBar(i + 1, iteration_);
@@ -248,6 +264,11 @@ void QLearning::start(World &world) {
       updateCellUtility(current_x, current_y, float(current_max_q));
       current_x = new_x;
       current_y = new_y;
+    }
+    for (int yy = 0; yy < height_; yy++) {
+      for (int xx = 0; xx < width_; xx++) {
+        saveStateUtility(xx, yy);
+      }
     }
   }
   std::cout<<"\n\n";

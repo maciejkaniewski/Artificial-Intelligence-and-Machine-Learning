@@ -18,6 +18,14 @@ class QLearning {
     float p;
   };
 
+  struct StateData {
+    int x;
+    int y;
+    std::vector<double> utilities;
+  };
+
+  static std::vector<StateData> inline saved_state_utilities_;
+
  private:
   static bool isPositionOutOfTheWorld(int x, int y);
   static bool isPositionForbidden(int x, int y);
@@ -42,6 +50,9 @@ class QLearning {
   static char generateRandomAction(char currentPolicy);
   static std::pair<int,int> executeAgentMove(int x, int y, std::vector<Point> possibleMoves);
   static void displayProgressBar(int currentIteration, int totalIterations, int barWidth);
+
+  static void initSavedStateUtilities();
+  static void saveStateUtility(int x, int y);
 
   static int inline width_;
   static int inline height_;
