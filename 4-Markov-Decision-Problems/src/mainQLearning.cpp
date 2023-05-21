@@ -11,14 +11,14 @@ int main(int argc, char** argv) {
 
   World world;
 
-  if (!world.loadWorldParametersFromFile(args.dataFile)) return 1;
+  if (!world.loadWorldParametersFromFile(args.dataFile,true)) return 1;
   if (args.hasGamma && !world.setGamma(args.gamma)) return 1;
   if (args.hasEpsilon) world.setEpsilon(args.epsilon);
   if (args.hasIteration) QLearning::setIteration(args.iteration);
 
   world.printWorldParameters();
   world.constructWorld();
-  QLearning::start(world);
+//  QLearning::start(world);
   world.displayWorld();
 
   if (args.shouldPlot) {

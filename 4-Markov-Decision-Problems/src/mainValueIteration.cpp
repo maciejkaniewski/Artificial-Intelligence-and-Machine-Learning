@@ -11,7 +11,7 @@ int main(int argc, char **argv) {
 
   World world;
 
-  if (!world.loadWorldParametersFromFile(args.dataFile)) return 1;
+  if (!world.loadWorldParametersFromFile(args.dataFile, false)) return 1;
   if (args.hasGamma && !world.setGamma(args.gamma)) return 1;
 
   world.printWorldParameters();

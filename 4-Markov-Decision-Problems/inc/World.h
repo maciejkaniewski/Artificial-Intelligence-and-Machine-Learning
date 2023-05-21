@@ -18,7 +18,7 @@ class World {
 
  public:
   World() = default;
-  bool loadWorldParametersFromFile(const std::string &file_name);
+  bool loadWorldParametersFromFile(const std::string &file_name, bool isQlearning);
   void printWorldParameters() const;
   bool setGamma(float gamma);
   void displayWorld() const;
@@ -78,6 +78,8 @@ class World {
 
   bool checkFileValidity(const std::string &file_name) const;
   bool checkParametersValidity() const;
+  bool isInSpecialStates(const std::pair<int, int> &state);
+  bool isInTerminalStates(const std::pair<int, int> &state);
 };
 
 #endif //INC_WORLD_H

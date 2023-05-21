@@ -1,3 +1,4 @@
+#include <random>
 #include "World.h"
 
 bool World::checkFileValidity(const std::string &file_name) const {
@@ -122,7 +123,7 @@ bool World::checkParametersValidity() const {
   return true;
 }
 
-bool World::loadWorldParametersFromFile(const std::string &file_name) {
+bool World::loadWorldParametersFromFile(const std::string &file_name, bool isQlearning) {
 
   if (!checkFileValidity(file_name)) return false;
 
@@ -179,13 +180,39 @@ bool World::loadWorldParametersFromFile(const std::string &file_name) {
     }
   }
 
-  if (!is_start_in_file) {
+  if (!is_start_in_file && !isQlearning) {
     start_x_ = 1;
     start_y_ = 1;
     std::cout << "Info: S option isn't present in " << file_name << " file. It has been set to default (1,1) value"
               << std::endl;
-  }
+  } else {
+    std::vector<std::pair<int, int>> available_states;
 
+    for (int x = 1; x <= width_x_; ++x) {
+      for (int y = 1; y <= height_y_; ++y) {
+        std::pair<int, int> state = std::make_pair(x, y);
+
+        if (std::find(forbidden_states_.begin(), forbidden_states_.end(), state) == forbidden_states_.end() &&
+            !isInTerminalStates(state) && !isInSpecialStates(state)) {
+          available_states.push_back(state);
+        }
+      }
+    }
+
+    if (!available_states.empty()) {
+      std::random_device rd;
+      std::mt19937 gen(rd());
+      std::uniform_int_distribution<> dis(0, available_states.size() - 1);
+      int random_index = dis(gen);
+      std::pair<int, int> random_state = available_states[random_index];
+
+      start_x_ = random_state.first;
+      start_y_ = random_state.second;
+
+      std::cout << "Info: S option isn't present in " << file_name << " file. It has been selected randomly at ("
+                << start_x_ << ", " << start_y_ << ")" << std::endl;
+    }
+  }
   return checkParametersValidity();
 }
 
@@ -377,7 +404,7 @@ void World::constructWorld() {
 
       cell.reward = reward_;
 
-      for (auto& pair : cell.q) {
+      for (auto &pair : cell.q) {
         pair.second = reward_;
       }
 
@@ -414,9 +441,21 @@ std::pair<int, int> World::getCoordinatesOfState(std::string_view targetState) c
   for (int i = 0; i < int(constructed_world_.size()); i++) {
     for (int j = 0; j < int(constructed_world_[i].size()); j++) {
       if (constructed_world_[i][j].state == targetState) {
-        return {i, j};  // Return x, y coordinates as a pair
+        return {i, j};
       }
     }
   }
-  return {0, 0};  // Return (-1, -1) if targetState not found
+  return {0, 0};
+}
+
+bool World::isInTerminalStates(const std::pair<int, int>& state) {
+  return std::any_of(terminal_states_.begin(), terminal_states_.end(), [&](const auto& terminal_state) {
+    return std::get<0>(terminal_state) == state.first && std::get<1>(terminal_state) == state.second;
+  });
+}
+
+bool World::isInSpecialStates(const std::pair<int, int>& state) {
+  return std::any_of(special_states_.begin(), special_states_.end(), [&](const auto& special_state) {
+    return std::get<0>(special_state) == state.first && std::get<1>(special_state) == state.second;
+  });
 }
