@@ -5,7 +5,7 @@ float ValueIterationAlgorithm::updateProbability(char action) {
     case '^':return p_[0];
     case '<':return p_[1];
     case '>':return p_[2];
-    case 'v':return (1.0f - p_[0] - p_[1] - p_[2]);
+    case 'v':return (1.0f - p_[0] - p_[1] - p_[2] < 1e-10) ? 0 : 1.0f - p_[0] - p_[1] - p_[2];
     default: return 0;
   }
 }

@@ -377,6 +377,10 @@ void World::constructWorld() {
 
       cell.reward = reward_;
 
+      for (auto& pair : cell.q) {
+        pair.second = reward_;
+      }
+
       for (const auto &[tx, ty, tr] : terminal_states_) {
         if (x == tx && y == ty) {
           cell.state = "T";

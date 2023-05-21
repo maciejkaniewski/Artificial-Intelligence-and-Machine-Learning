@@ -1,36 +1,27 @@
 #include "World.h"
 #include "Plotter.h"
 #include "ValueIterationAlgorithm.h"
+#include "CommandLineParser.h"
 
 int main(int argc, char **argv) {
 
+  CommandLineParser args = CommandLineParser::parseValueIteration(argc, argv);
+
+  if (args.dataFile.empty()) return 1;
+
   World world;
 
-  if (argc > 1 && argc <= 5) {
+  if (!world.loadWorldParametersFromFile(args.dataFile)) return 1;
+  if (args.hasGamma && !world.setGamma(args.gamma)) return 1;
 
-    // Validate file and load world parameters
-    if (!world.loadWorldParametersFromFile(argv[1])) return 1;
+  world.printWorldParameters();
+  world.constructWorld();
+  ValueIterationAlgorithm::start(world);
+  world.displayWorld();
 
-    // Parse gamma from command line argument
-    if (argc > 2 && std::string(argv[2]) != "-plot" && !world.setGamma(std::stod(argv[2]))) return 1;
-
-    // Parse epsilon from command line argument
-    if (argc > 3 && std::string(argv[3]) != "-plot") world.setEpsilon(std::stod(argv[3]));
-
-    world.printWorldParameters();
-    world.constructWorld();
-    ValueIterationAlgorithm::start(world);
-    world.displayWorld();
-
-    for (int i = 2; i < argc; i++) {
-      if (std::string(argv[i]) == "-plot") {
-        Plotter::plot(ValueIterationAlgorithm::saved_state_utilities_);
-        break;
-      }
-    }
-
-  } else {
-    std::cerr << "Usage: " << argv[0] << " <file_name> [<gamma>] [<epsilon>] [<-plot>]" << std::endl;
-    return 1;
+  if (args.shouldPlot) {
+    Plotter::plot(ValueIterationAlgorithm::saved_state_utilities_);
   }
+
+  return 0;
 }

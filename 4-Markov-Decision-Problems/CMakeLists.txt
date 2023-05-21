@@ -5,8 +5,8 @@ set(CMAKE_CXX_STANDARD 17)
 
 include_directories(inc)
 
-set(SOURCES_A src/mainValueIteration.cpp src/World.cpp src/ValueIterationAlgorithm.cpp inc/ValueIterationAlgorithm.h src/Plotter.cpp inc/Plotter.h)
-set(SOURCES_B src/mainQLearning.cpp src/World.cpp src/Plotter.cpp inc/Plotter.h src/QLearning.cpp inc/QLearning.h)
+set(SOURCES_A src/mainValueIteration.cpp src/World.cpp src/ValueIterationAlgorithm.cpp inc/ValueIterationAlgorithm.h src/Plotter.cpp inc/Plotter.h src/CommandLineParser.cpp inc/CommandLineParser.h)
+set(SOURCES_B src/mainQLearning.cpp src/World.cpp src/Plotter.cpp inc/Plotter.h src/QLearning.cpp inc/QLearning.h src/CommandLineParser.cpp inc/CommandLineParser.h)
 
 if(${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_BINARY_DIR})
     message(FATAL_ERROR "In-source builds not allowed. Please make a new directory (called a build directory) and run CMake from there. You may need to remove CMakeCache.txt. ")
