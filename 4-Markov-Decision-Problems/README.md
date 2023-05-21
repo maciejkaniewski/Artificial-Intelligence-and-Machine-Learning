@@ -6,6 +6,13 @@ The task consists of two parts.
 In the first part the program directly solve the MDP problem of known parameters using the value iteration method. 
 In the second part the program solve the MDP of unknown parameters using the Q-learning method.
 
+
+## Table of Contents
+- [Setup](#setup)
+- [Usage](#usage)
+- [Reproducing results from the report](#reproducing-results-from-the-report)
+- [Acknowledgements](#acknowledgements)
+
 ## Setup
 Prerequisites:
 * Installed CMake 
@@ -167,6 +174,82 @@ Both algorithms validate the input file. When there is no specified starting pos
 ```
 
 ![QLearning Example](./images/ql_example.png "QLearning Example")
+
+## Reproducing results from the report
+
+### 1. MDP results for the Russell and Norvig 4x3 world
+
+    ./build/value_iteration data1.txt -p
+
+### 2. MDP results for the 4x4 basic world
+
+    ./build/value_iteration data2.txt -p
+
+### 3. MDP results for the 4x4 basic world modifications
+
+#### 3.1 Modified reward function
+Modify `data2.txt` file:
+```
+W 4 4
+S 1 1
+P 0.8 0.1 0.1
+R -1
+G 0.99
+T 4 1 100
+B 3 2 -6.2
+F 3 1
+E 0.25
+```
+
+```
+W 4 4
+S 1 1
+P 0.8 0.1 0.1
+R -1
+G 0.99
+T 4 1 100
+B 3 2 -42.5
+F 3 1
+E 0.25
+```
+
+    ./build/value_iteration data2.txt -p
+#### 3.2 Modified uncertainty model
+Modify `data2.txt` file:
+```
+W 4 4
+S 1 1
+P 0.2 0.1 0.1
+R -1
+G 0.99
+T 4 1 100
+B 3 2 -20
+F 3 1
+E 0.25
+```
+    ./build/value_iteration data2.txt -p
+#### 3.3 Modified discounting
+For default `data2.txt` file:
+
+    ./build/value_iteration data2.txt -g 0.9 -p
+
+### 4. Q-learning results for the 4x4 basic world
+
+Due to the random nature of the algorithm, the results will vary.
+
+    ./build/qlearning data2.txt -e 0.05 -i 10000
+
+Then change number of iterations after `-i` argument.
+
+    ./build/qlearning data2.txt -e 0.2 -i 10000
+
+### 5. MDP results for the additional test world
+
+    ./build/value_iteration data3.txt
+
+### 6. Q-learning results for the additional test world
+
+    ./build/qlearning data3.txt -e 0.5 -i 5000000
 
 ## Acknowledgements
 
