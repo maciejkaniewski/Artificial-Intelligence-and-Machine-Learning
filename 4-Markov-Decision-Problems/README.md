@@ -53,6 +53,100 @@ Script output:
 
 ## Usage
 
+Both algorithms validate the input file. When there is no specified starting position in the file, the Value Iteration algorithm sets the default starting position to X=1, Y=1. On the other hand, the Q-Learning algorithm randomly selects the starting position from the available fields in the world, excluding terminal, forbidden, and special states.
+
+### Value Iteration Algorithm
+
+    ./build/value_iteration <data_file> [-g <gamma>] [-p]
+
+- <data_file> (mandatory): The input file containing world data.
+- -g <gamma> (optional): Specifies the discount factor (gamma).
+- -p (optional): Enables plotting functionality.
+
+
+    ./build/value_iteration data1.txt -g 0.99 -p
+
+      World Parameters:
+      Width X: 4
+      Height Y: 3
+      Start X: 1
+      Start Y: 1
+      Uncertainty Distribution P: 0.8(^), 0.1(<), 0.1(>)
+      Reward: -0.04
+      Discounting Parameter Gamma: 0.99
+      Exploration Parameter Epsilon: 0
+      (T) Terminal States: (4,2,-1) (4,3,1)
+      (B) Special States:
+      (F) Forbidden States: (2,2)
+    
+      +----------+ +----------+ +----------+ +----------+
+      |          | |          | |          | | T        |
+    3 | >        | | >        | | >        | |          |
+      | 0.7762   | | 0.8439   | | 0.9051   | | 1.0000   |
+      +----------+ +----------+ +----------+ +----------+
+      +----------+ +----------+ +----------+ +----------+
+      |          | | F        | |          | | T        |
+    2 | ^        | |          | | ^        | |          |
+      | 0.7166   | | 0.0000   | | 0.6413   | | -1.0000  |
+      +----------+ +----------+ +----------+ +----------+
+      +----------+ +----------+ +----------+ +----------+
+      | S        | |          | |          | |          |
+    1 | ^        | | <        | | ^        | | <        |
+      | 0.6506   | | 0.5926   | | 0.5601   | | 0.3380   |
+      +----------+ +----------+ +----------+ +----------+
+            1            2            3            4
+
+
+![Value Iteration Example](./images/vi_example.png "Value Iteration Example")
+
+### Q-Learning Algorithm
+
+    ./build/qlearning <data_file> [-g <gamma>] [-e <epsilon>] [-i <iteration>] [-p]
+
+- <data_file> (mandatory): The input file containing world data.
+- -g <gamma> (optional): Specifies the discount factor (gamma).
+- -e <epsilon> (optional): Specifies the exploration parameter (epsilon).
+- -i <iteration> (optional): Specifies the number of iterations of algorithm (default is 10 000).
+- -p (optional): Enables plotting functionality.
+
+   
+    ./build/qlearning data1.txt -g 0.99 -e 0.5 -i 1000000 -p
+    
+      World Parameters:
+      Width X: 4
+      Height Y: 3
+      Start X: 1
+      Start Y: 1
+      Uncertainty Distribution P: 0.8(^), 0.1(<), 0.1(>)
+      Reward: -0.04
+      Discounting Parameter Gamma: 0.99
+      Exploration Parameter Epsilon: 0.5
+      (T) Terminal States: (4,2,-1) (4,3,1)
+      (B) Special States:
+      (F) Forbidden States: (2,2)
+    
+      QLearning: [==================================================] 100%
+
+      +----------+ +----------+ +----------+ +----------+
+      |          | |          | |          | | T        |
+    3 | >        | | >        | | >        | |          |
+      | 0.7752   | | 0.8434   | | 0.9048   | | 1.0000   |
+      +----------+ +----------+ +----------+ +----------+
+      +----------+ +----------+ +----------+ +----------+
+      |          | | F        | |          | | T        |
+    2 | ^        | |          | | ^        | |          |
+      | 0.7151   | | 0.0000   | | 0.6395   | | -1.0000  |
+      +----------+ +----------+ +----------+ +----------+
+      +----------+ +----------+ +----------+ +----------+
+      | S        | |          | |          | |          |
+    1 | ^        | | <        | | ^        | | <        |
+      | 0.6459   | | 0.5822   | | 0.5545   | | 0.3293   |
+      +----------+ +----------+ +----------+ +----------+
+            1            2            3            4
+
+
+![QLearning Example](./images/ql_example.png "QLearning Example")
+
 ## Acknowledgements
 
 - [Markov decision process: value iteration with code implementation](https://medium.com/@ngao7/markov-decision-process-value-iteration-2d161d50a6ff)
