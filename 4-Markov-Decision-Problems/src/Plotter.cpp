@@ -57,7 +57,7 @@ void Plotter::plot(std::vector<QLearning::StateData> data) {
     i = (i == int(colors.size()) - 1) ? 0 : (i + 1);
   }
 
-  plt::title("The value iteration algorithm");
+  plt::title("The Q-Learning algorithm");
   plt::xlabel("Number of iterations");
   plt::ylabel("Utility estimates");
   plt::legend({{"loc", "lower right"}});
