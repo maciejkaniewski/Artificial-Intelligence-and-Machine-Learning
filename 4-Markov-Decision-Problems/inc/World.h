@@ -22,6 +22,7 @@ class World {
   void printWorldParameters() const;
   bool setGamma(float gamma);
   void displayWorld() const;
+  void displayQValues() const;
   void setEpsilon(float epsilon) { epsilon_ = epsilon; };
 
   struct Cell {
@@ -32,17 +33,17 @@ class World {
 
     // Below fields are used in Q learning
     std::unordered_map<char, double> q = {
-        {'v', 0},
+        {'^', 0},
         {'<', 0},
         {'>', 0},
-        {'^', 0}
+        {'v', 0}
     };
 
     std::unordered_map<char, int> n = {
-        {'v', 0},
+        {'^', 0},
         {'<', 0},
         {'>', 0},
-        {'^', 0}
+        {'v', 0}
     };
   };
 

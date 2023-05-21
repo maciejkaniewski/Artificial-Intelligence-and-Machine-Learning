@@ -391,6 +391,38 @@ void World::displayWorld() const {
   std::cout << std::endl;
 }
 
+void World::displayQValues() const {
+
+  auto height = int(constructed_world_[0].size());
+  auto width = int(constructed_world_.size());
+
+  for (int row = height; row >= 1; --row) {
+    std::cout << "  ";
+    for (int i = 1; i <= width; ++i) {
+      std::cout << "+------------+ ";
+    }
+    std::cout << std::endl;
+
+    std::vector<char> directions = { '^', '<', '>', 'v' };
+
+    for (const char direction : directions) {
+      std::cout<<"  ";
+      for (int i = 1; i <= width; ++i) {
+        std::cout << "| " << direction << std::setw(9) << constructed_world_[i-1][row-1].q.at(direction) << " | ";
+      }
+      std::cout << std::endl;
+    }
+
+    std::cout << "  ";
+    for (int i = 1; i <= width; ++i) {
+      std::cout << "+------------+ ";
+    }
+    std::cout << std::endl;
+  }
+
+  std::cout << std::endl;
+}
+
 void World::constructWorld() {
 
   std::vector<std::vector<Cell>> world(width_x_, std::vector<Cell>(height_y_));
@@ -410,6 +442,9 @@ void World::constructWorld() {
           cell.state = "T";
           cell.utility = tr;
           cell.reward = cell.utility;
+          for (auto &pair : cell.q) {
+            pair.second = cell.reward;
+          }
         }
       }
 
@@ -424,6 +459,9 @@ void World::constructWorld() {
         if (x == fx && y == fy) {
           cell.state = "F";
           cell.reward = 0.0f;
+          for (auto &pair : cell.q) {
+            pair.second = cell.reward;
+          }
         }
       }
       world[x - 1][y - 1] = cell;

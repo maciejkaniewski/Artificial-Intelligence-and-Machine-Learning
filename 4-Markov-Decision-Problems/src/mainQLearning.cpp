@@ -20,6 +20,7 @@ int main(int argc, char** argv) {
   world.constructWorld();
   QLearning::start(world);
   world.displayWorld();
+  world.displayQValues();
 
   if (args.shouldPlot) {
     Plotter::plot(QLearning::saved_state_utilities_);
