@@ -396,6 +396,8 @@ void World::displayQValues() const {
   auto height = int(constructed_world_[0].size());
   auto width = int(constructed_world_.size());
 
+  std::cout << std::endl << std::endl;
+
   for (int row = height; row >= 1; --row) {
     std::cout << "  ";
     for (int i = 1; i <= width; ++i) {
