@@ -4,7 +4,7 @@
 bool World::checkFileValidity(const std::string &file_name) const {
 
   if (!std::filesystem::exists(file_name)) {
-    std::cerr << "Error: File " << file_name << " does not exist." << std::endl;
+    std::cerr << "  Error: File " << file_name << " does not exist." << std::endl;
     return false;
   }
 
@@ -19,28 +19,28 @@ bool World::checkFileValidity(const std::string &file_name) const {
     if (c == 'W') {
       int width, height;
       if (!(iss >> width >> height)) {
-        std::cerr << "Error: Invalid world dimensions definition after W option in file " << file_name << std::endl;
+        std::cerr << "  Error: Invalid world dimensions definition after W option in file " << file_name << std::endl;
         return false;
       }
       has_w = true;
     } else if (c == 'P') {
       float p1, p2, p3;
       if (!(iss >> p1 >> p2 >> p3)) {
-        std::cerr << "Error: Invalid uncertainty distribution definition after P option in file " << file_name
+        std::cerr << "  Error: Invalid uncertainty distribution definition after P option in file " << file_name
                   << std::endl;
         return false;
       }
       has_p = true;
     } else if (c == 'R') {
       if (float reward; !(iss >> reward)) {
-        std::cerr << "Error: Invalid reward value definition after R option in file " << file_name << std::endl;
+        std::cerr << "  Error: Invalid reward value definition after R option in file " << file_name << std::endl;
         return false;
       }
       has_r = true;
     } else if (c == 'T') {
       int x, y;
       if (float reward; !(iss >> x >> y >> reward)) {
-        std::cerr << "Error: Invalid terminal state definition after T option in file " << file_name << std::endl;
+        std::cerr << "  Error: Invalid terminal state definition after T option in file " << file_name << std::endl;
         return false;
       }
       has_t = true;
@@ -48,19 +48,19 @@ bool World::checkFileValidity(const std::string &file_name) const {
   }
 
   if (!has_w) {
-    std::cerr << "Error: Mandatory option W is missing in file " << file_name << std::endl;
+    std::cerr << "  Error: Mandatory option W is missing in file " << file_name << std::endl;
     return false;
   }
   if (!has_p) {
-    std::cerr << "Error: Mandatory option P is missing in file " << file_name << std::endl;
+    std::cerr << "  Error: Mandatory option P is missing in file " << file_name << std::endl;
     return false;
   }
   if (!has_r) {
-    std::cerr << "Error: Mandatory option R is missing in file " << file_name << std::endl;
+    std::cerr << "  Error: Mandatory option R is missing in file " << file_name << std::endl;
     return false;
   }
   if (!has_t) {
-    std::cerr << "Error: Mandatory option T is missing in file " << file_name << std::endl;
+    std::cerr << "  Error: Mandatory option T is missing in file " << file_name << std::endl;
     return false;
   }
   return true;
@@ -70,36 +70,36 @@ bool World::checkParametersValidity() const {
 
   // Check if start state is defined within world dimensions
   if (start_x_ <= 0 || start_x_ > width_x_ || start_y_ <= 0 || start_y_ > height_y_) {
-    std::cerr << "Error: Start state (" << start_x_ << "," << start_y_ << ") is outside world dimensions"
+    std::cerr << "  Error: Start state (" << start_x_ << "," << start_y_ << ") is outside world dimensions"
               << std::endl;
     return false;
   }
 
   // Check if p1, p2, p3 >= 0.0 <= 1.0 and p1+p2+p3 <= 1.0
   if (p_[0] < 0.0 || p_[0] > 1.0) {
-    std::cerr << "Error: Invalid uncertainty specified for p1, should be in the range [0.0, 1.0]" << std::endl;
+    std::cerr << "  Error: Invalid uncertainty specified for p1, should be in the range [0.0, 1.0]" << std::endl;
     return false;
   } else if (p_[1] < 0.0 || p_[1] > 1.0) {
-    std::cerr << "Error: Invalid uncertainty specified for p2, should be in the range [0.0, 1.0]" << std::endl;
+    std::cerr << "  Error: Invalid uncertainty specified for p2, should be in the range [0.0, 1.0]" << std::endl;
     return false;
   } else if (p_[2] < 0.0 || p_[2] > 1.0) {
-    std::cerr << "Error: Invalid uncertainty specified for p3, should be in the range [0.0, 1.0]" << std::endl;
+    std::cerr << "  Error: Invalid uncertainty specified for p3, should be in the range [0.0, 1.0]" << std::endl;
     return false;
   } else if ((p_[0] + p_[1] + p_[2]) > 1.0) {
-    std::cerr << "Error: Uncertainty distribution sums to more than 1.0." << std::endl;
+    std::cerr << "  Error: Uncertainty distribution sums to more than 1.0." << std::endl;
     return false;
   }
 
   // Check if gamma is in range (0.0, 1.0]
   if (gamma_ <= 0.0 || gamma_ > 1.0) {
-    std::cerr << "Error: Gamma should be in the range (0.0, 1.0]" << std::endl;
+    std::cerr << "  Error: Gamma should be in the range (0.0, 1.0]" << std::endl;
     return false;
   }
 
   // Check if terminal states are defined within world dimensions
   for (auto [x_t, y_t, reward_t] : terminal_states_) {
     if (x_t <= 0 || x_t > width_x_ || y_t <= 0 || y_t > height_y_) {
-      std::cerr << "Error: Terminal state (" << x_t << "," << y_t << ") is outside world dimensions" << std::endl;
+      std::cerr << "  Error: Terminal state (" << x_t << "," << y_t << ") is outside world dimensions" << std::endl;
       return false;
     }
   }
@@ -107,7 +107,7 @@ bool World::checkParametersValidity() const {
   // Check if special states are defined within world dimensions
   for (auto [x_s, y_s, reward_s] : special_states_) {
     if (x_s <= 0 || x_s > width_x_ || y_s <= 0 || y_s > height_y_) {
-      std::cerr << "Error: Special state (" << x_s << "," << y_s << ") is outside world dimensions" << std::endl;
+      std::cerr << "  Error: Special state (" << x_s << "," << y_s << ") is outside world dimensions" << std::endl;
       return false;
     }
   }
@@ -115,7 +115,7 @@ bool World::checkParametersValidity() const {
   // Check if forbidden states are defined within world dimensions
   for (auto [x_f, y_f] : forbidden_states_) {
     if (x_f <= 0 || x_f > width_x_ || y_f <= 0 || y_f > height_y_) {
-      std::cerr << "Error: Forbidden state (" << x_f << "," << y_f << ") is outside world dimensions" << std::endl;
+      std::cerr << "  Error: Forbidden state (" << x_f << "," << y_f << ") is outside world dimensions" << std::endl;
       return false;
     }
   }
@@ -141,7 +141,7 @@ bool World::loadWorldParametersFromFile(const std::string &file_name, bool isQle
       iss >> width_x_ >> height_y_;
     } else if (c == 'S') {
       if (!(iss >> start_x_ >> start_y_)) {
-        std::cerr << "Error: Invalid start state definition after S option in file " << file_name << std::endl;
+        std::cerr << "  Error: Invalid start state definition after S option in file " << file_name << std::endl;
         return false;
       }
       is_start_in_file = true;
@@ -154,7 +154,7 @@ bool World::loadWorldParametersFromFile(const std::string &file_name, bool isQle
       iss >> gamma_;
     } else if (c == 'E') {
       if (!(iss >> epsilon_)) {
-        std::cerr << "Error: Invalid epsilon definition after E option in file " << file_name << std::endl;
+        std::cerr << "  Error: Invalid epsilon definition after E option in file " << file_name << std::endl;
         return false;
       }
     } else if (c == 'T') {
@@ -166,14 +166,14 @@ bool World::loadWorldParametersFromFile(const std::string &file_name, bool isQle
       int x, y;
       float reward;
       if (!(iss >> x >> y >> reward)) {
-        std::cerr << "Error: Invalid special state definition after B option in file " << file_name << std::endl;
+        std::cerr << "  Error: Invalid special state definition after B option in file " << file_name << std::endl;
         return false;
       }
       special_states_.emplace_back(x, y, reward);
     } else if (c == 'F') {
       int x, y;
       if (!(iss >> x >> y)) {
-        std::cerr << "Error: Invalid forbidden state definition after F option in file " << file_name << std::endl;
+        std::cerr << "  Error: Invalid forbidden state definition after F option in file " << file_name << std::endl;
         return false;
       }
       forbidden_states_.emplace_back(x, y);
@@ -183,9 +183,9 @@ bool World::loadWorldParametersFromFile(const std::string &file_name, bool isQle
   if (!is_start_in_file && !isQlearning) {
     start_x_ = 1;
     start_y_ = 1;
-    std::cout << "Info: S option isn't present in " << file_name << " file. It has been set to default (1,1) value"
+    std::cout << "  Info: S option isn't present in " << file_name << " file. It has been set to default (1,1) value"
               << std::endl;
-  } else {
+  } else if(!is_start_in_file && isQlearning) {
     std::vector<std::pair<int, int>> available_states;
 
     for (int x = 1; x <= width_x_; ++x) {
@@ -209,7 +209,7 @@ bool World::loadWorldParametersFromFile(const std::string &file_name, bool isQle
       start_x_ = random_state.first;
       start_y_ = random_state.second;
 
-      std::cout << "Info: S option isn't present in " << file_name << " file. It has been selected randomly at ("
+      std::cout << "  Info: S option isn't present in " << file_name << " file. It has been selected randomly at ("
                 << start_x_ << ", " << start_y_ << ")" << std::endl;
     }
   }
@@ -251,7 +251,7 @@ void World::printWorldParameters() const {
 bool World::setGamma(float gamma) {
 
   if (gamma <= 0.0 || gamma > 1.0) {
-    std::cerr << "Error: Gamma should be in the range (0.0, 1.0]" << std::endl;
+    std::cerr << "  Error: Gamma should be in the range (0.0, 1.0]" << std::endl;
     return false;
   } else {
     gamma_ = gamma;
@@ -260,9 +260,6 @@ bool World::setGamma(float gamma) {
 }
 
 void World::displayWorld() const {
-
-//  auto height = int(constructed_world_.size());
-//  auto width = int(constructed_world_[0].size());
 
   auto height = int(constructed_world_[0].size());
   auto width = int(constructed_world_.size());

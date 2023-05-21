@@ -18,7 +18,7 @@ int main(int argc, char** argv) {
 
   world.printWorldParameters();
   world.constructWorld();
-//  QLearning::start(world);
+  QLearning::start(world);
   world.displayWorld();
 
   if (args.shouldPlot) {
