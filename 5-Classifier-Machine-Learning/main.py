@@ -15,9 +15,10 @@ from tabulate import tabulate
 from data_processor import DataProcessor
 
 
-def perform_text_classification(data_sets, text_clf_pipeline, enable_plot) -> list[tuple[list[Any], Any, float]]:
+def perform_text_classification(data_sets, text_clf_pipeline, enable_plot, enable_ca) -> list[tuple[list[Any], Any, float]]:
     pipeline_methods = [step[1] for step in text_clf_pipeline.steps]
-    print("Classification Pipeline:", pipeline_methods)
+    if enable_ca:
+        print("Classification Pipeline:", pipeline_methods)
 
     # Store the results
     results = []
@@ -35,9 +36,10 @@ def perform_text_classification(data_sets, text_clf_pipeline, enable_plot) -> li
         y_pred = text_clf_pipeline.predict(x_test)
         # Print accuracy and classification report
         results.append((pipeline_methods, config_name, accuracy_score(y_test, y_pred)))
-        print(f"{config_name} Accuracy:", accuracy_score(y_test, y_pred))
-        print(f"{config_name} Classification Report:\n",
-              classification_report(y_test, y_pred, target_names=data.target_names))
+        if enable_ca:
+            print(f"{config_name} Accuracy:", accuracy_score(y_test, y_pred))
+            print(f"{config_name} Classification Report:\n",
+                  classification_report(y_test, y_pred, target_names=data.target_names))
         # Plot confusion matrix
         if enable_plot:
             sns.heatmap(confusion_matrix(y_test, y_pred), annot=True, fmt="d", cmap="Blues",
@@ -58,6 +60,7 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(description='Text Classification')
     parser.add_argument('-p', action='store_true', help='Enable plotting confusion matrices')
+    parser.add_argument('-c', action='store_true', help='Enable classification reports and accuracy')
     args = parser.parse_args()
 
     # Load data
@@ -80,7 +83,7 @@ if __name__ == "__main__":
                     ('Bag_Of_Words', CountVectorizer()),
                     ('Naive_Bayes', MultinomialNB()),
                 ],
-            ), args.p))
+            ), args.p, args.c))
 
     classification_results.append(
         perform_text_classification(
@@ -90,7 +93,7 @@ if __name__ == "__main__":
                     ('Bigram', CountVectorizer(ngram_range=(2, 2))),
                     ('Naive_Bayes', MultinomialNB()),
                 ],
-            ), args.p))
+            ), args.p, args.c))
 
     table_data = []
     for outer_list in classification_results:
@@ -99,12 +102,12 @@ if __name__ == "__main__":
         accuracy_values = [str(value) for value in accuracy_values]
         table_data.append([pipeline_methods] + accuracy_values)
 
-    print(tabulate(table_data, headers=['Pipeline Methods', 'Raw Dataset', 'Preprocessed Dataset'], tablefmt='grid'))
+    print(tabulate(table_data, headers=['Classification Pipeline', 'Raw Dataset', 'Preprocessed Dataset'], tablefmt='grid'))
     print()
 
     flattened_list = [item for sublist in classification_results for item in sublist]
     best_result = max(flattened_list, key=lambda x: x[2])
 
-    print("Best Accuracy:", best_result[2])
-    print("Pipeline Methods:", best_result[0])
+    print("Accuracy:", best_result[2])
     print("Dataset Type:", best_result[1])
+    print("Classification Pipeline:", best_result[0])
