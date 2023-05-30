@@ -9,10 +9,12 @@ from sklearn.pipeline import Pipeline
 import matplotlib.pyplot as plt
 import seaborn as sns
 
+import argparse
+
 from data_processor import DataProcessor
 
 
-def perform_text_classification(data_sets, text_clf_pipeline) -> list[tuple[list[Any], Any, float]]:
+def perform_text_classification(data_sets, text_clf_pipeline, enable_plot) -> list[tuple[list[Any], Any, float]]:
     pipeline_methods = [step[1] for step in text_clf_pipeline.steps]
     print("Classification Pipeline:", pipeline_methods)
 
@@ -20,7 +22,8 @@ def perform_text_classification(data_sets, text_clf_pipeline) -> list[tuple[list
     results = []
 
     # Create a figure with two subplots
-    fig, axes = plt.subplots(1, 2, figsize=(16, 6))
+    if enable_plot:
+        fig, axes = plt.subplots(1, 2, figsize=(16, 6))
 
     for i, (config_name, data_set) in enumerate(data_sets.items()):
         # Split the data into training and testing sets (80% for training, 20% for testing)
@@ -35,18 +38,29 @@ def perform_text_classification(data_sets, text_clf_pipeline) -> list[tuple[list
         print(f"{config_name} Classification Report:\n",
               classification_report(y_test, y_pred, target_names=data.target_names))
         # Plot confusion matrix
-        sns.heatmap(confusion_matrix(y_test, y_pred), annot=True, fmt="d", cmap="Blues",
-                    xticklabels=data.target_names, yticklabels=data.target_names, ax=axes[i])
-        axes[i].set_xlabel("Predicted")
-        axes[i].set_ylabel("True")
-        axes[i].set_title(f"{config_name} Confusion Matrix")
+        if enable_plot:
+            sns.heatmap(confusion_matrix(y_test, y_pred), annot=True, fmt="d", cmap="Blues",
+                        xticklabels=data.target_names, yticklabels=data.target_names, ax=axes[i])
+            axes[i].set_xlabel("Predicted")
+            axes[i].set_ylabel("True")
+            axes[i].set_title(f"{config_name} Confusion Matrix")
 
-    # Show the figure with both confusion matrices
-    plt.show()
+    print()
+    if enable_plot:
+        fig.text(0.5, 0.95, pipeline_methods, transform=fig.transFigure,
+                 horizontalalignment='center', verticalalignment='center', fontsize=12)
+        plt.show()
     return results
 
 
 if __name__ == "__main__":
+    # Create an ArgumentParser object
+    parser = argparse.ArgumentParser(description='Text Classification')
+    # Add an argument to enable/disable plotting confusion matrices
+    parser.add_argument('-p', action='store_true', help='Enable plotting confusion matrices')
+    # Parse the command line arguments
+    args = parser.parse_args()
+
     # Load data
     data = load_files("data", encoding="latin-1")
 
@@ -67,7 +81,7 @@ if __name__ == "__main__":
                     ('Bag_Of_Words', CountVectorizer()),
                     ('Naive_Bayes', MultinomialNB()),
                 ],
-            )))
+            ), args.p))
 
     classification_results.append(
         perform_text_classification(
@@ -77,7 +91,7 @@ if __name__ == "__main__":
                     ('Bigram', CountVectorizer(ngram_range=(2, 2))),
                     ('Naive_Bayes', MultinomialNB()),
                 ],
-            )))
+            ), args.p))
 
     flattened_list = [item for sublist in classification_results for item in sublist]
     best_result = max(flattened_list, key=lambda x: x[2])
