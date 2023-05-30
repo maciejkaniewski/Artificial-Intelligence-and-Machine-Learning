@@ -108,6 +108,6 @@ if __name__ == "__main__":
     flattened_list = [item for sublist in classification_results for item in sublist]
     best_result = max(flattened_list, key=lambda x: x[2])
 
-    print("Accuracy:", best_result[2])
-    print("Dataset Type:", best_result[1])
-    print("Classification Pipeline:", best_result[0])
+    print(f"The best result is {best_result[0]}\nobtained on {best_result[1]} with {round(best_result[2] * 100, 2)}% "
+          f"accuracy.")
+
