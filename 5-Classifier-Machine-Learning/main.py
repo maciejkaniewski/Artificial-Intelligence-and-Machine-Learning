@@ -10,6 +10,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 
 import argparse
+from tabulate import tabulate
 
 from data_processor import DataProcessor
 
@@ -54,11 +55,9 @@ def perform_text_classification(data_sets, text_clf_pipeline, enable_plot) -> li
 
 
 if __name__ == "__main__":
-    # Create an ArgumentParser object
+
     parser = argparse.ArgumentParser(description='Text Classification')
-    # Add an argument to enable/disable plotting confusion matrices
     parser.add_argument('-p', action='store_true', help='Enable plotting confusion matrices')
-    # Parse the command line arguments
     args = parser.parse_args()
 
     # Load data
@@ -92,6 +91,16 @@ if __name__ == "__main__":
                     ('Naive_Bayes', MultinomialNB()),
                 ],
             ), args.p))
+
+    table_data = []
+    for outer_list in classification_results:
+        pipeline_methods = ', '.join(str(step) for step in outer_list[0][0])
+        accuracy_values = [entry[2] for entry in outer_list]
+        accuracy_values = [str(value) for value in accuracy_values]
+        table_data.append([pipeline_methods] + accuracy_values)
+
+    print(tabulate(table_data, headers=['Pipeline Methods', 'Raw Dataset', 'Preprocessed Dataset'], tablefmt='grid'))
+    print()
 
     flattened_list = [item for sublist in classification_results for item in sublist]
     best_result = max(flattened_list, key=lambda x: x[2])
