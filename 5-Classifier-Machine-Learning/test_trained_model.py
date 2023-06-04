@@ -1,8 +1,8 @@
-from sklearn.datasets import load_files
-from sklearn.metrics import classification_report, accuracy_score, confusion_matrix
+import seaborn as sns
 import joblib as joblib
 import matplotlib.pyplot as plt
-import seaborn as sns
+from sklearn.datasets import load_files
+from sklearn.metrics import classification_report, accuracy_score, confusion_matrix
 
 if __name__ == "__main__":
     # Load the trained model

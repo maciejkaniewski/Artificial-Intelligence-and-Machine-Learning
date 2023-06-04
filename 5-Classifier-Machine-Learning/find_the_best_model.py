@@ -1,12 +1,12 @@
-from sklearn.datasets import load_files
-from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
-from sklearn.naive_bayes import MultinomialNB
-from sklearn.pipeline import Pipeline
-from sklearn.model_selection import GridSearchCV
-from sklearn.tree import DecisionTreeClassifier
-from sklearn.neighbors import KNeighborsClassifier
 from sklearn.svm import SVC
+from sklearn.pipeline import Pipeline
+from sklearn.datasets import load_files
 from timeit import default_timer as timer
+from sklearn.naive_bayes import MultinomialNB
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.model_selection import GridSearchCV
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
 
 if __name__ == "__main__":
     start = timer()

@@ -1,9 +1,9 @@
 import joblib as joblib
-from sklearn.datasets import load_files
-from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.svm import SVC
 from sklearn.pipeline import Pipeline
+from sklearn.datasets import load_files
 from sklearn.model_selection import cross_val_score
+from sklearn.feature_extraction.text import TfidfVectorizer
 
 if __name__ == "__main__":
     data = load_files("data", encoding="latin-1")
