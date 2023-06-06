@@ -10,6 +10,7 @@ The main goal of this task was to build a classifier for recognizing the theme o
 - [Acknowledgements](#acknowledgements)
 
 ## Setup
+The scripts were tested for `Python 3.10.6` version.
 
 Create virtual environment:
 
