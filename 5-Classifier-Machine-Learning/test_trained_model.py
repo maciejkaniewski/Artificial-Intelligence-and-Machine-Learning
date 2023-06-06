@@ -1,3 +1,4 @@
+import argparse
 import seaborn as sns
 import joblib as joblib
 import matplotlib.pyplot as plt
@@ -5,11 +6,17 @@ from sklearn.datasets import load_files
 from sklearn.metrics import classification_report, accuracy_score, confusion_matrix
 
 if __name__ == "__main__":
+
+    # Parse CLI arguments
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-data_path", default="test_dataset", help="Path to the test dataset")
+    args = parser.parse_args()
+
     # Load the trained model
     model = joblib.load('trained_model.pkl')
 
     # Load the new data using the same method as before
-    new_data = load_files("test_dataset", encoding="latin-1")
+    new_data = load_files(args.data_path, encoding="latin-1")
 
     # Make predictions on the new data
     predictions = model.predict(new_data.data)
