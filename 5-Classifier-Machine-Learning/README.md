@@ -1,7 +1,7 @@
 # Classifier Machine Learning
 
 Classifier Machine Learning is a project I realized in the first semester of my Master's studies within the Artificial Intelligence and Machine Learning course at the Wroclaw University of Technology in the field of Control Engineering and Robotics.
-The main goal of this task was to build a classifier for recognizing the theme of a short text (press note) in one of the following five groups: business, entertainment, politics, sport, tech. Work with the provided dataset of texts, develop a representation, feature extraction method, and a final classifier to correctly label any new text samples.
+The main goal of this task was to build a classifier for recognizing the theme of a short text (press note) in one of the following five groups: business, entertainment, politics, sport, tech.
 
 ## Table of Contents
 - [Setup](#setup)
