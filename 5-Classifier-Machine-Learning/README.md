@@ -6,7 +6,6 @@ The main goal of this task was to build a classifier for recognizing the theme o
 ## Table of Contents
 - [Setup](#setup)
 - [Usage](#usage)
-- [Reproducing results from the report](#reproducing-results-from-the-report)
 - [Acknowledgements](#acknowledgements)
 
 ## Setup
