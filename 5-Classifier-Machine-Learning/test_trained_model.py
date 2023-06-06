@@ -6,13 +6,13 @@ from sklearn.metrics import classification_report, accuracy_score, confusion_mat
 
 if __name__ == "__main__":
     # Load the trained model
-    pipeline = joblib.load('trained_model.pkl')
+    model = joblib.load('trained_model.pkl')
 
     # Load the new data using the same method as before
     new_data = load_files("test_dataset", encoding="latin-1")
 
     # Make predictions on the new data
-    predictions = pipeline.predict(new_data.data)
+    predictions = model.predict(new_data.data)
 
     # Calculate and print the accuracy
     print(f"Accuracy: {accuracy_score(new_data.target, predictions)}")
