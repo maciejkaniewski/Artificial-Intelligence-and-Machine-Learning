@@ -1,3 +1,4 @@
+import argparse
 import joblib as joblib
 from sklearn.svm import SVC
 from sklearn.pipeline import Pipeline
@@ -6,7 +7,13 @@ from sklearn.model_selection import cross_val_score
 from sklearn.feature_extraction.text import TfidfVectorizer
 
 if __name__ == "__main__":
-    data = load_files("data", encoding="latin-1")
+
+    # Parse CLI arguments
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-data", default="data", help="Path to the train dataset")
+    args = parser.parse_args()
+
+    data = load_files(args.data, encoding="latin-1")
 
     model = Pipeline([
         ('TF-IDF', TfidfVectorizer(ngram_range=(1, 2), stop_words='english')),
