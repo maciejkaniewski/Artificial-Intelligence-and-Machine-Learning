@@ -6,6 +6,8 @@ The main goal of this task was to build a classifier for recognizing the theme o
 ## Table of Contents
 - [Setup](#setup)
 - [Usage](#usage)
+  - [Regenerate the classifier based on the original training data](#saving-the-best-model)
+  - [Repeat the classification of a given test set](#test-trained-model)
 - [Acknowledgements](#acknowledgements)
 
 ## Setup
@@ -88,7 +90,10 @@ Memory: 16GB
 
 ### Saving the best model
 
-Based on the results of the previous script, the model with the best cross validation score was defined. For the `save_the_best_model.py` script, it is possible to specify the directory with the training dataset via the command line argument. By default, the script uses the current `data` directory.
+This section describes this functionality: 
+_**Allow to regenerate the classifier based on the original training data (set of texts)**._
+
+Based on the results of the previous script, the model with the best cross validation score was defined. For the `save_the_best_model.py` script, it is possible to specify the directory with the **training dataset** via the command line argument. By default, the script uses the current `data` directory.
 
 ```
 usage: save_the_best_model.py [-h] [-data DATA_PATH]
@@ -120,7 +125,10 @@ Directory `data` provided by PhD Paluszyński is a part of **BBC Dataset**, that
 
 ### Test trained model
 
-For the `test_trained_model.py` script, it is possible to specify the directory with the test dataset via the command line argument. By default, the script uses the current `test_dataset` directory.
+This section describes this functionality: 
+_**Repeat the classification of a given test set**._
+
+For the `test_trained_model.py` script, it is possible to specify the directory with the **test dataset** via the command line argument. By default, the script uses the current `test_dataset` directory.
 
 ```
 usage: test_trained_model.py [-h] [-data DATA_PATH]
