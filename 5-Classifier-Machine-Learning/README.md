@@ -88,10 +88,21 @@ Memory: 16GB
 
 ### Saving the best model
 
-Based on the results of the previous script, the model with the best cross validation score was defined. Run the script with following command:
+Based on the results of the previous script, the model with the best cross validation score was defined. For the `save_the_best_model.py` script, it is possible to specify the directory with the training dataset via the command line argument. By default, the script uses the current `data` directory.
 
 ```
-python3 save_the_best_model.py
+usage: save_the_best_model.py [-h] [-data DATA_PATH]
+
+options:
+  -h, --help       show this help message and exit
+  -data DATA_PATH  Path to the train dataset
+
+```
+
+Example usage:
+
+```
+python3 save_the_best_model.py -data data
 ```
 
 ```python
@@ -112,11 +123,11 @@ Directory `data` provided by PhD Paluszyński is a part of **BBC Dataset**, that
 For the `test_trained_model.py` script, it is possible to specify the directory with the test dataset via the command line argument. By default, the script uses the current `test_dataset` directory.
 
 ```
-usage: test_trained_model.py [-h] [-data_path DATA_PATH]
+usage: test_trained_model.py [-h] [-data DATA_PATH]
 
 options:
-  -h, --help            show this help message and exit
-  -data_path DATA_PATH  Path to the test dataset
+  -h, --help       show this help message and exit
+  -data DATA_PATH  Path to the test dataset
 ```
 
 Example usage:
